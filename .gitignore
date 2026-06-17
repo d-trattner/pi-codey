@@ -1,6 +1,15 @@
 node_modules/
 .pi/
+
+# temp/scratch directories
+tmp/
+temp/
+.tmp/
+.temp/
+tmp_*/
+*_tmp/
 tmp_asar/
+
 __pycache__/
 *.pyc
 *.log
