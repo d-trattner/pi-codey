@@ -1,0 +1,51 @@
+{
+  "name": "pi-codey",
+  "version": "0.1.0",
+  "description": "Pi extension and onboard blueprint controller for Makeblock Codey Rocky reactions.",
+  "main": "src/index.js",
+  "files": [
+    ".extensions/",
+    "bin/pi-codey.js",
+    "bin/pi-codey-flash.js",
+    "examples/",
+    "generated/codey_blueprints.py",
+    "README.md",
+    "src/",
+    "tools/flash_codey.py",
+    "tools/trigger_codey.py"
+  ],
+  "bin": {
+    "pi-codey": "./bin/pi-codey.js",
+    "pi-codey-flash": "./bin/pi-codey-flash.js"
+  },
+  "scripts": {
+    "detect": "node bin/pi-codey.js detect",
+    "say": "node bin/pi-codey.js say",
+    "demo": "node bin/pi-codey.js demo",
+    "flash": "python tools/flash_codey.py generated/codey_blueprints.py --port COM3",
+    "packcheck": "npm pack --dry-run"
+  },
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "makeblock",
+    "codey",
+    "rocky",
+    "robot"
+  ],
+  "pi": {
+    "extensions": [
+      "./.extensions/pi-codey.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "author": "Daniel",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {}
+}

@@ -1,0 +1,15 @@
+node_modules/
+.pi/
+tmp_asar/
+__pycache__/
+*.pyc
+*.log
+*.tgz
+npm-debug.log*
+.DS_Store
+
+# local experiments / generated test helpers not shipped to npm
+bin/codeyx.js
+talk.py
+generated/codey_message.py
+generated/codey_serial_trigger_test.py

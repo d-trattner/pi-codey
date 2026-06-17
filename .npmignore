@@ -1,0 +1,9 @@
+tmp_asar/
+.pi/
+.git/
+__pycache__/
+*.log
+bin/codeyx.js
+talk.py
+generated/codey_message.py
+generated/codey_serial_trigger_test.py
