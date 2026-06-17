@@ -15,8 +15,8 @@
     "tools/trigger_codey.py"
   ],
   "bin": {
-    "pi-codey": "./bin/pi-codey.js",
-    "pi-codey-flash": "./bin/pi-codey-flash.js"
+    "pi-codey": "bin/pi-codey.js",
+    "pi-codey-flash": "bin/pi-codey-flash.js"
   },
   "scripts": {
     "detect": "node bin/pi-codey.js detect",
