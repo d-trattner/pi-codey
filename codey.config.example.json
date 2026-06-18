@@ -53,7 +53,8 @@
       "onFloorStableSeconds": 1.0,
       "stableMin": 7,
       "stableMax": 13,
-      "cooldownMs": 5000
+      "cooldownMs": 5000,
+      "putDownCooldownMs": 1000
     }
   }
 }

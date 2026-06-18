@@ -39,7 +39,7 @@ SOUNDS = [
     'wrong.wav', 'ring.wav', 'score.wav', 'shot.wav', 'step_1.wav',
     'step_2.wav', 'wake.wav', 'warning.wav'
 ]
-CONFIG = json.loads('{"movement":true,"movementSpeed":0.55,"sounds":true,"blueprints":{},"sensors":{"enabled":true,"shake":{"enabled":true,"blueprint":"dizzy","threshold":25,"cooldownMs":5000},"sound":{"enabled":true,"blueprint":"screaming","threshold":85,"cooldownMs":5000},"lift":{"enabled":true,"fearBlueprint":"fear","putDownBlueprint":"thank_you","lowAccel":4,"highAccel":22,"deltaAccel":10,"useFloorIr":true,"floorIrThreshold":20,"floorIrStableThreshold":60,"offFloorStableSeconds":0.6,"onFloorStableSeconds":1.0,"stableMin":7,"stableMax":13,"cooldownMs":5000}}}')
+CONFIG = json.loads('{"movement":true,"movementSpeed":0.55,"sounds":true,"blueprints":{},"sensors":{"enabled":true,"shake":{"enabled":true,"blueprint":"dizzy","threshold":25,"cooldownMs":5000},"sound":{"enabled":true,"blueprint":"screaming","threshold":85,"cooldownMs":5000},"lift":{"enabled":true,"fearBlueprint":"fear","putDownBlueprint":"thank_you","lowAccel":4,"highAccel":22,"deltaAccel":10,"useFloorIr":true,"floorIrThreshold":20,"floorIrStableThreshold":60,"offFloorStableSeconds":0.6,"onFloorStableSeconds":1.0,"stableMin":7,"stableMax":13,"cooldownMs":5000,"putDownCooldownMs":1000}}}')
 index = 0
 idle_i = 0
 requested = None
@@ -274,7 +274,7 @@ def check_sensors():
                         lifted = True
                         stable_since = 0
                         off_floor_since = 0
-                        if sensor_ready('lift_event', lift.get('cooldownMs', 5000)):
+                        if sensor_ready('lift', lift.get('cooldownMs', 5000)):
                             requested = lift.get('fearBlueprint', 'fear')
                             return
                 else:
@@ -286,7 +286,7 @@ def check_sensors():
                         lifted = False
                         stable_since = 0
                         off_floor_since = 0
-                        if sensor_ready('lift_event', lift.get('cooldownMs', 5000)):
+                        if sensor_ready('putdown', lift.get('putDownCooldownMs', 1000)):
                             requested = lift.get('putDownBlueprint', 'thank_you')
                             return
                 else:
@@ -294,7 +294,7 @@ def check_sensors():
         elif not lifted and (total < low or total > high or delta > delta_threshold or not upright):
             lifted = True
             stable_since = 0
-            if sensor_ready('lift_event', lift.get('cooldownMs', 5000)):
+            if sensor_ready('lift', lift.get('cooldownMs', 5000)):
                 requested = lift.get('fearBlueprint', 'fear')
                 return
         elif lifted:
@@ -303,7 +303,7 @@ def check_sensors():
                 if now - stable_since > 0.8:
                     lifted = False
                     stable_since = 0
-                    if sensor_ready('lift_event', lift.get('cooldownMs', 5000)):
+                    if sensor_ready('putdown', lift.get('putDownCooldownMs', 1000)):
                         requested = lift.get('putDownBlueprint', 'thank_you')
                         return
             else:

@@ -144,12 +144,13 @@ These are configured in `.pi/codey.config.json`:
     "onFloorStableSeconds": 1.0,
     "stableMin": 7,
     "stableMax": 13,
-    "cooldownMs": 5000
+    "cooldownMs": 5000,
+    "putDownCooldownMs": 1000
   }
 }
 ```
 
-Sensor checks run during idle waits so short shake/lift events are not missed. Lift detection uses floor IR when enabled and requires stable off-floor/on-floor readings before triggering `fear` or `thank_you`; acceleration/orientation is the fallback.
+Sensor checks run during idle waits so short shake/lift events are not missed. Lift detection uses floor IR when enabled and requires stable off-floor/on-floor readings before triggering `fear` or `thank_you`; acceleration/orientation is the fallback. Lift and put-down use separate cooldowns so `thank_you` can happen shortly after `fear`.
 
 ## Long-running task reaction
 
