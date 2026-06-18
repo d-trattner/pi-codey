@@ -39,7 +39,7 @@ SOUNDS = [
     'wrong.wav', 'ring.wav', 'score.wav', 'shot.wav', 'step_1.wav',
     'step_2.wav', 'wake.wav', 'warning.wav'
 ]
-CONFIG = json.loads('{"movement":true,"movementSpeed":0.55,"sounds":true,"blueprints":{},"sensors":{"enabled":true,"shake":{"enabled":true,"blueprint":"dizzy","threshold":20,"cooldownMs":5000},"sound":{"enabled":true,"blueprint":"screaming","threshold":65,"cooldownMs":5000},"lift":{"enabled":true,"fearBlueprint":"fear","putDownBlueprint":"thank_you","lowAccel":5,"highAccel":18,"deltaAccel":6,"stableMin":7,"stableMax":13,"cooldownMs":5000}}}')
+CONFIG = json.loads('{"movement":true,"movementSpeed":0.55,"sounds":true,"blueprints":{},"sensors":{"enabled":true,"shake":{"enabled":true,"blueprint":"dizzy","threshold":25,"cooldownMs":5000},"sound":{"enabled":true,"blueprint":"screaming","threshold":85,"cooldownMs":5000},"lift":{"enabled":true,"fearBlueprint":"fear","putDownBlueprint":"thank_you","lowAccel":4,"highAccel":22,"deltaAccel":10,"useFloorIr":false,"floorIrThreshold":8,"floorIrStableThreshold":12,"stableMin":7,"stableMax":13,"cooldownMs":5000}}}')
 index = 0
 idle_i = 0
 requested = None
@@ -148,6 +148,12 @@ def accel_total():
     except Exception:
         return 9.8
 
+def floor_ir():
+    try:
+        return rocky.color_ir_sensor.get_reflected_infrared()
+    except Exception:
+        return None
+
 def melody(name, fallback=None):
     # Use Codey's built-in wave files, but avoid synthetic beep/note fallbacks.
     if current_blueprint and not sounds_enabled(current_blueprint): return
@@ -246,19 +252,25 @@ def check_sensors():
         low = lift.get('lowAccel', 5)
         high = lift.get('highAccel', 18)
         delta_threshold = lift.get('deltaAccel', 6)
+        use_floor = lift.get('useFloorIr', False)
+        floor = floor_ir() if use_floor else None
+        floor_threshold = lift.get('floorIrThreshold', 8)
+        floor_stable_threshold = lift.get('floorIrStableThreshold', 12)
         stable_min = lift.get('stableMin', 7)
         stable_max = lift.get('stableMax', 13)
         try: upright = codey.motion_sensor.is_upright()
         except Exception: upright = True
         now = time.time()
-        if not lifted and (total < low or total > high or delta > delta_threshold or not upright):
+        off_floor = floor is not None and floor <= floor_threshold
+        on_floor = floor is not None and floor >= floor_stable_threshold
+        if not lifted and (off_floor or total < low or total > high or delta > delta_threshold or not upright):
             lifted = True
             stable_since = 0
             if sensor_ready('lift', lift.get('cooldownMs', 5000)):
                 requested = lift.get('fearBlueprint', 'fear')
                 return
         elif lifted:
-            if upright and stable_min <= total <= stable_max:
+            if (on_floor or (upright and stable_min <= total <= stable_max)):
                 if stable_since == 0: stable_since = now
                 if now - stable_since > 0.8:
                     lifted = False
@@ -324,18 +336,18 @@ def play_blueprint(name):
     elif name == 'bored':
         led(35, 35, 80); face(LOOK_L); blueprint_melody(name, 'sigh.wav'); time.sleep(0.35); face(LOOK_R); time.sleep(0.35); face(BLINK_THIN)
     elif name == 'dizzy':
-        led(120, 0, 255); face(SMALL); blueprint_melody(name, 'surprised.wav'); rotate(1, 18, 0.10); rotate(-1, 18, 0.10); face(THINK)
+        led(120, 0, 255); face(SMALL); blueprint_melody(name, 'annoyed.wav'); rotate(1, 18, 0.10); rotate(-1, 18, 0.10); face(THINK)
     elif name == 'screaming':
-        led(255, 255, 255); face(WARN); blueprint_melody(name, 'surprised.wav'); time.sleep(0.25); led(255, 80, 0); face(SMALL)
+        led(255, 255, 255); face(WARN); blueprint_melody(name, 'warning.wav'); time.sleep(0.25); led(255, 80, 0); face(SMALL)
     elif name == 'fear':
         led(255, 0, 0); face(WARN); blueprint_melody(name, 'surprised.wav'); time.sleep(0.35); face(SAD)
     elif name == 'thank_you':
         led(0, 255, 120); face(HAPPY); blueprint_melody(name, 'yummy.wav'); time.sleep(0.35); face(OK)
     elif name == 'bye':
         led(0, 120, 255); face(SHY); blueprint_melody(name, 'bye.wav'); rotate(-1, 18, 0.12); face(EYES)
-    current_blueprint = None
     interruptible_sleep(1.1)
     idle_now()
+    current_blueprint = None
 
 idle_now(); wait_release(); prime_seen_messages()
 while True:

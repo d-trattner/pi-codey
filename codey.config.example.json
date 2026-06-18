@@ -19,8 +19,8 @@
     "sad": { "sound": "sad", "movement": true },
     "sleepy": { "sound": "sleepy", "movement": true },
     "bored": { "sound": "sigh", "movement": false },
-    "dizzy": { "sound": "surprised", "movement": true },
-    "screaming": { "sound": "surprised", "movement": false },
+    "dizzy": { "sound": "annoyed", "movement": true },
+    "screaming": { "sound": "warning", "movement": false },
     "fear": { "sound": "surprised", "movement": false },
     "thank_you": { "sound": "yummy", "movement": false },
     "bye": { "sound": "bye", "movement": true }
@@ -30,22 +30,25 @@
     "shake": {
       "enabled": true,
       "blueprint": "dizzy",
-      "threshold": 20,
+      "threshold": 25,
       "cooldownMs": 5000
     },
     "sound": {
       "enabled": true,
       "blueprint": "screaming",
-      "threshold": 65,
+      "threshold": 85,
       "cooldownMs": 5000
     },
     "lift": {
       "enabled": true,
       "fearBlueprint": "fear",
       "putDownBlueprint": "thank_you",
-      "lowAccel": 5,
-      "highAccel": 18,
-      "deltaAccel": 6,
+      "lowAccel": 4,
+      "highAccel": 22,
+      "deltaAccel": 10,
+      "useFloorIr": false,
+      "floorIrThreshold": 8,
+      "floorIrStableThreshold": 12,
       "stableMin": 7,
       "stableMax": 13,
       "cooldownMs": 5000
