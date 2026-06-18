@@ -239,10 +239,19 @@ export default function (pi: ExtensionAPI) {
   });
 
 
+  function findConfigPath(): string | null {
+    const candidates = [
+      path.join(process.cwd(), ".pi", "codey.config.json"),
+      path.join(process.cwd(), "codey.config.json"),
+      path.join(state.root, "codey.config.json"),
+    ];
+    return candidates.find((candidate) => existsSync(candidate)) || null;
+  }
+
   function configuredProgramPath(): string {
     const program = path.join(state.root, "generated", "codey_blueprints.py");
-    const configPath = path.join(state.root, "codey.config.json");
-    if (!existsSync(configPath)) return program;
+    const configPath = findConfigPath();
+    if (!configPath) return program;
 
     const config = JSON.parse(readFileSync(configPath, "utf8"));
     const source = readFileSync(program, "utf8");

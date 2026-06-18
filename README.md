@@ -117,11 +117,14 @@ sleepy, bye, idle
 
 ## Blueprint configuration
 
-Create a local `codey.config.json` to customize sounds and movement before flashing:
+Create a Pi project config to customize sounds and movement before flashing:
 
 ```bash
-cp codey.config.example.json codey.config.json
+mkdir -p .pi
+cp codey.config.example.json .pi/codey.config.json
 ```
+
+For quick local development, a repo-root `codey.config.json` also works.
 
 Example:
 
@@ -151,7 +154,13 @@ Options:
 - `blueprints.<name>.sounds`: override sounds for one blueprint
 - `blueprints.<name>.sound`: replace one blueprint's sound, e.g. `"score"`, `"level up"`, or `null` for no sound
 
-`codey.config.json` is local/ignored by git. The example file is committed and shipped.
+Config lookup order:
+
+1. `.pi/codey.config.json` in the current Pi project
+2. `codey.config.json` in the current Pi project/repo
+3. `codey.config.json` in the installed package root, mainly for local development
+
+This keeps npm installs clean: users configure the extension from their project, not by editing `node_modules`. The example file is committed and shipped.
 
 ## Sounds
 
