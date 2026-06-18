@@ -1,6 +1,6 @@
 {
   "name": "pi-codey",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Pi extension and onboard blueprint controller for Makeblock Codey Rocky reactions.",
   "main": "src/index.js",
   "files": [
