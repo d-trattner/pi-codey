@@ -50,21 +50,23 @@ Improvements:
 
 This would make `/codey install` much easier to debug.
 
-### 4. Add configurable auto-reaction profiles
+### 4. Add configurable auto-reaction profiles — DONE
 
-Instead of only `auto on/off`, support profiles:
+Implemented profiles:
 
 ```text
-/codey profile minimal
-/codey profile expressive
 /codey profile silent
+/codey profile min
+/codey profile mid
+/codey profile max
 ```
 
-Possible profiles:
+Current behavior:
 
-- `minimal`: startup/error/success only
-- `expressive`: think/tool/error/success/bye
-- `silent`: manual only
+- `silent`: manual reactions only
+- `min`: startup, thinking, errors, success, shutdown
+- `mid`: min + tool start/success reactions
+- `max`: broader expression palette across tool events
 
 ### 5. Add cooldown/throttling controls
 
