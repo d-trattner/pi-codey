@@ -122,9 +122,17 @@ If Codey supports text display or speech-like output, add:
 
 Even just showing text on the display would be useful and fun.
 
-### 10. Add custom user blueprints/config
+### 10. Add custom user blueprints/config — PARTLY DONE
 
-Allow users to configure event mappings with a file such as:
+Implemented `codey.config.json` / `.pi/codey.config.json` for onboard blueprint configuration:
+
+- enable/disable movement globally
+- configure movement speed globally/per blueprint
+- enable/disable sounds globally/per blueprint
+- change blueprint sounds
+- configure sensor reaction thresholds/cooldowns
+
+Still open for a later iteration: configurable Pi event mapping such as:
 
 ```json
 {
@@ -134,12 +142,6 @@ Allow users to configure event mappings with a file such as:
   "onToolError": "error"
 }
 ```
-
-Possible config names:
-
-- `.codeyrc.json`
-- `codey.config.json`
-- Pi settings integration later
 
 ### 11. Add sensor-driven emotional blueprints — DONE
 
@@ -154,33 +156,35 @@ Implemented:
 
 Implementation notes:
 
-- Shake can use `codey.motion_sensor.is_shaked()` and/or `get_shake_strength()`.
-- Loud sound can use `codey.sound_sensor.get_loudness()` with a configurable threshold and cooldown.
-- Airborne/lift detection probably needs a heuristic, not a single perfect API:
-  - use `codey.motion_sensor.get_acceleration('x'|'y'|'z')`
-  - estimate total acceleration magnitude
-  - detect a brief low-gravity/freefall-ish window or large orientation/acceleration change
-  - optionally combine with Rocky/base state if available
-- Put-down detection can trigger when acceleration/orientation stabilizes again after the airborne state.
-- Add config controls, e.g.:
+- Shake uses `codey.motion_sensor.is_shaked()` and `get_shake_strength()`.
+- Loud sound uses `codey.sound_sensor.get_loudness()` with configurable threshold/cooldown.
+- Lift/put-down uses a tuned floor-IR heuristic from `rocky.color_ir_sensor.get_reflected_infrared()` with debounce/cooldowns.
+- Sensor diagnostics are available with `/codey sensors` and write `.pi/codey-sensors-last.txt`.
+- Config controls are available, e.g.:
 
 ```json
 {
   "sensors": {
     "enabled": true,
-    "shake": { "enabled": true, "blueprint": "dizzy", "cooldownMs": 5000 },
-    "sound": { "enabled": true, "blueprint": "screaming", "threshold": 75, "cooldownMs": 5000 },
+    "shake": { "enabled": true, "blueprint": "dizzy", "threshold": 25, "cooldownMs": 5000 },
+    "sound": { "enabled": true, "blueprint": "screaming", "threshold": 15, "cooldownMs": 5000 },
     "lift": {
       "enabled": true,
       "fearBlueprint": "fear",
       "putDownBlueprint": "thank_you",
-      "cooldownMs": 5000
+      "useFloorIr": true,
+      "floorIrThreshold": 20,
+      "floorIrStableThreshold": 60,
+      "offFloorStableSeconds": 0.6,
+      "onFloorStableSeconds": 1.0,
+      "cooldownMs": 5000,
+      "putDownCooldownMs": 1000
     }
   }
 }
 ```
 
-Needs careful tuning to avoid false positives.
+Tuned locally after sensor diagnostics; may still need per-surface adjustment.
 
 ## Engineering improvements
 
@@ -222,8 +226,8 @@ This would catch broken package publishes earlier.
 
 ## Suggested next three
 
-Practical first improvements:
+Practical next improvements:
 
-1. `/codey test`
-2. better flash/trigger error messages
-3. `/codey detect`
+1. `/codey cooldown`
+2. stricter `codey_react` tool schema
+3. basic tests / CI
