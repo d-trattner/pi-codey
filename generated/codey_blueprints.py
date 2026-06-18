@@ -39,7 +39,7 @@ SOUNDS = [
     'wrong.wav', 'ring.wav', 'score.wav', 'shot.wav', 'step_1.wav',
     'step_2.wav', 'wake.wav', 'warning.wav'
 ]
-CONFIG = json.loads('{"movement":true,"movementSpeed":0.55,"sounds":true,"blueprints":{},"sensors":{"enabled":true,"shake":{"enabled":true,"blueprint":"dizzy","threshold":25,"cooldownMs":5000},"sound":{"enabled":true,"blueprint":"screaming","threshold":85,"cooldownMs":5000},"lift":{"enabled":true,"fearBlueprint":"fear","putDownBlueprint":"thank_you","lowAccel":4,"highAccel":22,"deltaAccel":10,"useFloorIr":true,"floorIrThreshold":20,"floorIrStableThreshold":60,"stableMin":7,"stableMax":13,"cooldownMs":5000}}}')
+CONFIG = json.loads('{"movement":true,"movementSpeed":0.55,"sounds":true,"blueprints":{},"sensors":{"enabled":true,"shake":{"enabled":true,"blueprint":"dizzy","threshold":25,"cooldownMs":5000},"sound":{"enabled":true,"blueprint":"screaming","threshold":85,"cooldownMs":5000},"lift":{"enabled":true,"fearBlueprint":"fear","putDownBlueprint":"thank_you","lowAccel":4,"highAccel":22,"deltaAccel":10,"useFloorIr":true,"floorIrThreshold":20,"floorIrStableThreshold":60,"offFloorStableSeconds":0.6,"onFloorStableSeconds":1.0,"stableMin":7,"stableMax":13,"cooldownMs":5000}}}')
 index = 0
 idle_i = 0
 requested = None
@@ -49,6 +49,7 @@ current_blueprint = None
 last_sensor_at = {}
 lifted = False
 stable_since = 0
+off_floor_since = 0
 last_accel_total = 9.8
 
 IDLE_FRAMES = [
@@ -226,7 +227,7 @@ def prime_seen_messages():
         pass
 
 def check_sensors():
-    global requested, lifted, stable_since, last_accel_total
+    global requested, lifted, stable_since, off_floor_since, last_accel_total
     if requested or requested_sound or current_blueprint: return
     shake = sensor_config('shake')
     if shake:
@@ -263,19 +264,46 @@ def check_sensors():
         now = time.time()
         off_floor = floor is not None and floor <= floor_threshold
         on_floor = floor is not None and floor >= floor_stable_threshold
-        if not lifted and (off_floor or total < low or total > high or delta > delta_threshold or not upright):
+        if use_floor:
+            off_stable = lift.get('offFloorStableSeconds', 0.6)
+            on_stable = lift.get('onFloorStableSeconds', 1.0)
+            if not lifted:
+                if off_floor:
+                    if off_floor_since == 0: off_floor_since = now
+                    if now - off_floor_since >= off_stable:
+                        lifted = True
+                        stable_since = 0
+                        off_floor_since = 0
+                        if sensor_ready('lift_event', lift.get('cooldownMs', 5000)):
+                            requested = lift.get('fearBlueprint', 'fear')
+                            return
+                else:
+                    off_floor_since = 0
+            else:
+                if on_floor:
+                    if stable_since == 0: stable_since = now
+                    if now - stable_since >= on_stable:
+                        lifted = False
+                        stable_since = 0
+                        off_floor_since = 0
+                        if sensor_ready('lift_event', lift.get('cooldownMs', 5000)):
+                            requested = lift.get('putDownBlueprint', 'thank_you')
+                            return
+                else:
+                    stable_since = 0
+        elif not lifted and (total < low or total > high or delta > delta_threshold or not upright):
             lifted = True
             stable_since = 0
-            if sensor_ready('lift', lift.get('cooldownMs', 5000)):
+            if sensor_ready('lift_event', lift.get('cooldownMs', 5000)):
                 requested = lift.get('fearBlueprint', 'fear')
                 return
         elif lifted:
-            if (on_floor or (upright and stable_min <= total <= stable_max)):
+            if upright and stable_min <= total <= stable_max:
                 if stable_since == 0: stable_since = now
                 if now - stable_since > 0.8:
                     lifted = False
                     stable_since = 0
-                    if sensor_ready('putdown', lift.get('cooldownMs', 5000)):
+                    if sensor_ready('lift_event', lift.get('cooldownMs', 5000)):
                         requested = lift.get('putDownBlueprint', 'thank_you')
                         return
             else:

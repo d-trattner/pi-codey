@@ -140,6 +140,8 @@ These are configured in `.pi/codey.config.json`:
     "useFloorIr": true,
     "floorIrThreshold": 20,
     "floorIrStableThreshold": 60,
+    "offFloorStableSeconds": 0.6,
+    "onFloorStableSeconds": 1.0,
     "stableMin": 7,
     "stableMax": 13,
     "cooldownMs": 5000
@@ -147,7 +149,7 @@ These are configured in `.pi/codey.config.json`:
 }
 ```
 
-Sensor checks run during idle waits so short shake/lift events are not missed. Lift detection is heuristic: it uses motion-sensor acceleration/orientation changes, then waits for stable upright acceleration before triggering `thank_you`.
+Sensor checks run during idle waits so short shake/lift events are not missed. Lift detection uses floor IR when enabled and requires stable off-floor/on-floor readings before triggering `fear` or `thank_you`; acceleration/orientation is the fallback.
 
 ## Long-running task reaction
 

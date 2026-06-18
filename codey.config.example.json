@@ -49,6 +49,8 @@
       "useFloorIr": true,
       "floorIrThreshold": 20,
       "floorIrStableThreshold": 60,
+      "offFloorStableSeconds": 0.6,
+      "onFloorStableSeconds": 1.0,
       "stableMin": 7,
       "stableMax": 13,
       "cooldownMs": 5000
