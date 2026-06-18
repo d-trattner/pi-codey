@@ -3,6 +3,8 @@ tmp_asar/
 .git/
 __pycache__/
 *.log
+.codey-blueprints.configured.py
+codey.config.json
 bin/codeyx.js
 talk.py
 generated/codey_message.py

@@ -1,7 +1,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const BLUEPRINTS = [
@@ -239,18 +239,48 @@ export default function (pi: ExtensionAPI) {
   });
 
 
+  function configuredProgramPath(): string {
+    const program = path.join(state.root, "generated", "codey_blueprints.py");
+    const configPath = path.join(state.root, "codey.config.json");
+    if (!existsSync(configPath)) return program;
+
+    const config = JSON.parse(readFileSync(configPath, "utf8"));
+    const source = readFileSync(program, "utf8");
+    const configJson = JSON.stringify(config).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    const configured = source.replace(
+      /^CONFIG = .*$/m,
+      `CONFIG = json.loads('${configJson}')`,
+    );
+    const tempProgram = path.join(state.root, ".codey-blueprints.configured.py");
+    writeFileSync(tempProgram, configured, "utf8");
+    return tempProgram;
+  }
+
   function flashCodey(port = state.port): Promise<{ ok: boolean; code: number | null }> {
     return new Promise((resolve) => {
       const script = path.join(state.root, "tools", "flash_codey.py");
       const program = path.join(state.root, "generated", "codey_blueprints.py");
       if (!existsSync(script) || !existsSync(program)) return resolve({ ok: false, code: null });
-      const child = spawn("python", [script, program, "--port", port], {
+
+      let uploadProgram: string;
+      try {
+        uploadProgram = configuredProgramPath();
+      } catch {
+        return resolve({ ok: false, code: null });
+      }
+
+      const child = spawn("python", [script, uploadProgram, "--port", port], {
         cwd: state.root,
         stdio: "ignore",
         windowsHide: true,
       });
       child.once("error", () => resolve({ ok: false, code: null }));
-      child.once("exit", (code) => resolve({ ok: code === 0, code }));
+      child.once("exit", (code) => {
+        if (path.basename(uploadProgram) === ".codey-blueprints.configured.py") {
+          try { unlinkSync(uploadProgram); } catch {}
+        }
+        resolve({ ok: code === 0, code });
+      });
     });
   }
 

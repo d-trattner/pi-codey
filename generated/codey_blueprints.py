@@ -5,6 +5,7 @@ import codey
 import rocky
 import event
 import time
+import json
 
 EYES = '00003c7e7e3c000000003c7e7e3c0000'
 BLINK_WIDE = '0000183c3c1800000000183c3c180000'
@@ -38,11 +39,13 @@ SOUNDS = [
     'wrong.wav', 'ring.wav', 'score.wav', 'shot.wav', 'step_1.wav',
     'step_2.wav', 'wake.wav', 'warning.wav'
 ]
+CONFIG = json.loads('{"movement":true,"sounds":true,"blueprints":{}}')
 index = 0
 idle_i = 0
 requested = None
 requested_sound = None
 seen_messages = {}
+current_blueprint = None
 
 IDLE_FRAMES = [
     (EYES, 1.7), (BLINK_MID, 0.06), (BLINK_TINY, 0.14), (BLINK_WIDE, 0.06),
@@ -73,14 +76,46 @@ def notes(seq, dur=0.12):
     # Preserve this helper as a no-op so older blueprint calls stay compatible.
     pass
 
+def bp_config(name):
+    try:
+        return CONFIG.get('blueprints', {}).get(name, {}) or {}
+    except Exception:
+        return {}
+
+def movement_enabled(name=None):
+    if name is None: name = current_blueprint
+    try:
+        return bool(bp_config(name).get('movement', CONFIG.get('movement', True)))
+    except Exception:
+        return True
+
+def sounds_enabled(name=None):
+    if name is None: name = current_blueprint
+    try:
+        return bool(bp_config(name).get('sounds', CONFIG.get('sounds', True)))
+    except Exception:
+        return True
+
+def sound_name(name, default):
+    value = bp_config(name).get('sound', default)
+    if value is None or value is False or value == '': return None
+    if value in SOUNDS or (value + '.wav') in SOUNDS: return value
+    return default
+
 def melody(name, fallback=None):
     # Use Codey's built-in wave files, but avoid synthetic beep/note fallbacks.
+    if current_blueprint and not sounds_enabled(current_blueprint): return
     try:
         codey.speaker.play_melody(name)
     except Exception:
         pass
 
+def blueprint_melody(blueprint, default):
+    name = sound_name(blueprint, default)
+    if name: melody(name)
+
 def wiggle(speed=25, duration=0.18):
+    if not movement_enabled(): return
     try:
         rocky.forward(speed, duration); time.sleep(0.05)
         rocky.backward(speed, duration); time.sleep(0.05)
@@ -88,6 +123,7 @@ def wiggle(speed=25, duration=0.18):
     except Exception: pass
 
 def rotate(direction=1, speed=28, duration=0.22):
+    if not movement_enabled(): return
     try:
         rocky.drive(speed if direction >= 0 else -speed, -speed if direction >= 0 else speed)
         time.sleep(duration); rocky.stop()
@@ -155,38 +191,41 @@ def check_external_triggers():
         pass
 
 def play_blueprint(name):
+    global current_blueprint
+    current_blueprint = name
     if name == 'ack':
-        led(0, 180, 255); face(EYES); melody('hi.wav', [72]); nod(16)
+        led(0, 180, 255); face(EYES); blueprint_melody(name, 'hi.wav'); nod(16)
     elif name == 'hello':
-        led(0, 200, 255); face(HAPPY); melody('hello.wav', [72, 76]); rotate(1, 18, 0.12); rotate(-1, 18, 0.12)
+        led(0, 200, 255); face(HAPPY); blueprint_melody(name, 'hello.wav'); rotate(1, 18, 0.12); rotate(-1, 18, 0.12)
     elif name == 'ready':
-        led(0, 255, 120); face(OK); melody('ready.wav', [67, 72]); wiggle(18, 0.10)
+        led(0, 255, 120); face(OK); blueprint_melody(name, 'ready.wav'); wiggle(18, 0.10)
     elif name == 'think':
-        led(0, 60, 255); face(THINK); melody('curious.wav', [60, 64]); rotate(1, 12, 0.10)
+        led(0, 60, 255); face(THINK); blueprint_melody(name, 'curious.wav'); rotate(1, 12, 0.10)
     elif name == 'curious':
-        led(80, 0, 255); face(LOOK_L); melody('curious.wav', [64, 67]); face(LOOK_R); rotate(-1, 14, 0.10)
+        led(80, 0, 255); face(LOOK_L); blueprint_melody(name, 'curious.wav'); face(LOOK_R); rotate(-1, 14, 0.10)
     elif name == 'notify':
-        led(255, 255, 255); face(EYES); melody('prompt tone.wav', [76, 76]); shake(20); face(LOOK_R)
+        led(255, 255, 255); face(EYES); blueprint_melody(name, 'prompt tone.wav'); shake(20); face(LOOK_R)
     elif name == 'success':
-        led(0, 255, 70); face(OK); melody('yummy.wav', [67, 72, 79]); wiggle(25, 0.16); rotate(1, 22, 0.12); face(HAPPY)
+        led(0, 255, 70); face(OK); blueprint_melody(name, 'yummy.wav'); wiggle(25, 0.16); rotate(1, 22, 0.12); face(HAPPY)
     elif name == 'celebrate':
-        led(255, 0, 120); face(HAPPY); melody('yeah.wav', [72, 76, 79, 84, 79]); rotate(1, 35, 0.20); rotate(-1, 35, 0.20); wiggle(35, 0.16); led(0, 255, 70); face(OK)
+        led(255, 0, 120); face(HAPPY); blueprint_melody(name, 'yeah.wav'); rotate(1, 35, 0.20); rotate(-1, 35, 0.20); wiggle(35, 0.16); led(0, 255, 70); face(OK)
     elif name == 'wow':
-        led(255, 80, 0); face(SMALL); melody('wow.wav', [72, 84]); wiggle(22, 0.12); face(EYES)
+        led(255, 80, 0); face(SMALL); blueprint_melody(name, 'wow.wav'); wiggle(22, 0.12); face(EYES)
     elif name == 'laugh':
-        led(255, 180, 0); face(HAPPY); melody('laugh.wav', [72, 76, 72]); shake(24); face(HAPPY)
+        led(255, 180, 0); face(HAPPY); blueprint_melody(name, 'laugh.wav'); shake(24); face(HAPPY)
     elif name == 'warn':
-        led(255, 120, 0); face(WARN); melody('warning.wav', [72, 69, 72]); wiggle(18, 0.12); face(EYES)
+        led(255, 120, 0); face(WARN); blueprint_melody(name, 'warning.wav'); wiggle(18, 0.12); face(EYES)
     elif name == 'error':
-        led(255, 0, 0); face(WARN); melody('wrong.wav', [60, 55, 48]); rotate(-1, 18, 0.14); wiggle(20, 0.12); face(SAD)
+        led(255, 0, 0); face(WARN); blueprint_melody(name, 'wrong.wav'); rotate(-1, 18, 0.14); wiggle(20, 0.12); face(SAD)
     elif name == 'angry':
-        led(255, 0, 0); face(ANGRY); melody('angry.wav', [55, 52]); rotate(1, 28, 0.14); rotate(-1, 28, 0.14)
+        led(255, 0, 0); face(ANGRY); blueprint_melody(name, 'angry.wav'); rotate(1, 28, 0.14); rotate(-1, 28, 0.14)
     elif name == 'sad':
-        led(160, 0, 255); face(SAD); melody('sad.wav', [64, 60, 57]); wiggle(12, 0.10)
+        led(160, 0, 255); face(SAD); blueprint_melody(name, 'sad.wav'); wiggle(12, 0.10)
     elif name == 'sleepy':
-        led(0, 20, 80); face(BLINK_THIN); melody('sleepy.wav', [55, 52]); time.sleep(0.4); face(BLINK_TINY)
+        led(0, 20, 80); face(BLINK_THIN); blueprint_melody(name, 'sleepy.wav'); time.sleep(0.4); face(BLINK_TINY)
     elif name == 'bye':
-        led(0, 120, 255); face(SHY); melody('bye.wav', [79, 72]); rotate(-1, 18, 0.12); face(EYES)
+        led(0, 120, 255); face(SHY); blueprint_melody(name, 'bye.wav'); rotate(-1, 18, 0.12); face(EYES)
+    current_blueprint = None
     interruptible_sleep(1.1)
     idle_now()
 

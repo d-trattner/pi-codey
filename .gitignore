@@ -14,6 +14,8 @@ __pycache__/
 *.pyc
 *.log
 *.tgz
+.codey-blueprints.configured.py
+codey.config.json
 npm-debug.log*
 .DS_Store
 

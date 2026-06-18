@@ -7,6 +7,7 @@
     "extensions/",
     "bin/pi-codey.js",
     "bin/pi-codey-flash.js",
+    "codey.config.example.json",
     "examples/",
     "generated/codey_blueprints.py",
     "README.md",

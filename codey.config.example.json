@@ -1,0 +1,22 @@
+{
+  "movement": true,
+  "sounds": true,
+  "blueprints": {
+    "success": {
+      "sound": "yummy",
+      "movement": true
+    },
+    "think": {
+      "sound": "curious",
+      "movement": false
+    },
+    "celebrate": {
+      "sound": "yeah",
+      "movement": false
+    },
+    "error": {
+      "sound": "wrong",
+      "movement": true
+    }
+  }
+}

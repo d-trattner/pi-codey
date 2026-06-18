@@ -115,6 +115,44 @@ celebrate, wow, laugh, warn, error, angry, sad,
 sleepy, bye, idle
 ```
 
+## Blueprint configuration
+
+Create a local `codey.config.json` to customize sounds and movement before flashing:
+
+```bash
+cp codey.config.example.json codey.config.json
+```
+
+Example:
+
+```json
+{
+  "movement": true,
+  "sounds": true,
+  "blueprints": {
+    "success": { "sound": "yummy", "movement": true },
+    "think": { "sound": "curious", "movement": false },
+    "celebrate": { "sound": "yeah", "movement": false }
+  }
+}
+```
+
+Then flash:
+
+```text
+/codey install
+```
+
+Options:
+
+- `movement`: global default for Rocky wheel/body movement
+- `sounds`: global default for built-in wave/melody playback
+- `blueprints.<name>.movement`: override movement for one blueprint
+- `blueprints.<name>.sounds`: override sounds for one blueprint
+- `blueprints.<name>.sound`: replace one blueprint's sound, e.g. `"score"`, `"level up"`, or `null` for no sound
+
+`codey.config.json` is local/ignored by git. The example file is committed and shipped.
+
 ## Sounds
 
 Play a built-in Codey wave/melody file directly:
