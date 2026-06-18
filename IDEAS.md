@@ -18,25 +18,16 @@ hello → think → success → idle
 
 Useful after install, flashing, or changing ports.
 
-### 2. Add `/codey detect`
+### 2. Add `/codey detect` — DONE
 
-Users currently need to know the serial port. Add:
+Implemented:
 
 ```text
 /codey detect
-```
-
-It could scan likely serial ports and report:
-
-```text
-Found Codey candidate: COM3
-```
-
-Optionally support setting it immediately:
-
-```text
 /codey detect --use
 ```
+
+It scans serial ports and scores likely Codey/Makeblock/CH340/WCH devices. `--use` sets the detected port as active.
 
 ### 3. Improve install/flash feedback — DONE
 

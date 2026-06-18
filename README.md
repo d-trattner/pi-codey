@@ -61,6 +61,8 @@ This uploads `generated/codey_blueprints.py` to Codey as `/flash/main.py`.
 ```text
 /codey status
 /codey install
+/codey detect
+/codey detect --use
 /codey test
 /codey success
 /codey celebrate
@@ -81,6 +83,15 @@ This uploads `generated/codey_blueprints.py` to Codey as `/flash/main.py`.
 /codey auto-on
 /codey port COM3
 ```
+
+## Detect Codey port
+
+```text
+/codey detect        # show likely Codey serial port
+/codey detect --use  # detect and set active port
+```
+
+Detection scores serial ports using Codey/Makeblock/CH340/WCH USB metadata.
 
 ## Test sequence
 

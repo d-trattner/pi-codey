@@ -25,6 +25,7 @@ const SOUNDS = [
 type Blueprint = (typeof BLUEPRINTS)[number];
 type Profile = "silent" | "min" | "mid" | "max";
 type FlashResult = { ok: boolean; code: number | null; error?: string; output?: string };
+type DetectResult = { selected?: string | null; candidates?: Array<{ port?: string; description?: string; manufacturer?: string; score?: number }>; ports?: Array<{ port?: string; description?: string; manufacturer?: string; score?: number }>; error?: string };
 
 const PROFILES = ["silent", "min", "mid", "max"] as const;
 
@@ -182,6 +183,32 @@ export default function (pi: ExtensionAPI) {
     });
   }
 
+  function detectCodey(): Promise<DetectResult> {
+    return new Promise((resolve) => {
+      const script = path.join(state.root, "tools", "detect_codey.py");
+      if (!existsSync(script)) return resolve({ error: `detect script not found: ${script}` });
+
+      let stdout = "";
+      let stderr = "";
+      const child = spawn("python", [script, "--json"], {
+        cwd: state.root,
+        stdio: ["ignore", "pipe", "pipe"],
+        windowsHide: true,
+      });
+      child.stdout?.on("data", (chunk) => { stdout += String(chunk); });
+      child.stderr?.on("data", (chunk) => { stderr += String(chunk); });
+      child.once("error", (err) => resolve({ error: err.message }));
+      child.once("exit", (code) => {
+        if (code !== 0) return resolve({ error: stderr || stdout || `detect exited with code ${code}` });
+        try {
+          resolve(JSON.parse(stdout));
+        } catch (err) {
+          resolve({ error: `failed to parse detect output: ${err instanceof Error ? err.message : String(err)}` });
+        }
+      });
+    });
+  }
+
   pi.on("session_start", async (_event, ctx) => {
     state.root = process.env.PI_CODEY_ROOT || process.env.CODEYX_ROOT || PACKAGE_ROOT;
     if (state.enabled) {
@@ -321,7 +348,7 @@ export default function (pi: ExtensionAPI) {
   }
 
   pi.registerCommand("codey", {
-    description: "Control pi-codey. Usage: /codey <install|flash|test|blueprint|play soundname|profile silent|min|mid|max|on|off|auto-on|auto-off|port COM3|status>",
+    description: "Control pi-codey. Usage: /codey <install|flash|detect|test|blueprint|play soundname|profile silent|min|mid|max|on|off|auto-on|auto-off|port COM3|status>",
     handler: async (args, ctx) => {
       const parts = String(args || "").trim().split(/\s+/).filter(Boolean);
       const cmd = parts[0] || "status";
@@ -339,6 +366,24 @@ export default function (pi: ExtensionAPI) {
           trigger("success", "install");
         } else {
           ctx.ui.notify(`pi-codey flash failed: ${result.error || "unknown error"}`, "error");
+        }
+      } else if (cmd === "detect") {
+        const result = await detectCodey();
+        if (result.error) {
+          ctx.ui.notify(`pi-codey detect failed: ${result.error}`, "error");
+        } else if (result.selected) {
+          const use = parts.includes("--use") || parts.includes("use");
+          if (use) state.port = result.selected;
+          const candidates = (result.candidates || []).slice(0, 3)
+            .map((port) => `${port.port}${port.description ? ` (${port.description})` : ""}`)
+            .join(", ");
+          ctx.ui.notify(
+            `Detected Codey candidate: ${result.selected}${use ? " and set as active port" : ""}${candidates ? `. Candidates: ${candidates}` : ""}`,
+            "info",
+          );
+        } else {
+          const ports = (result.ports || []).map((port) => port.port).filter(Boolean).join(", ");
+          ctx.ui.notify(`No obvious Codey port found.${ports ? ` Available ports: ${ports}` : " No serial ports found."}`, "error");
         }
       } else if (cmd === "test") {
         const sequence: Blueprint[] = ["hello", "think", "success", "idle"];

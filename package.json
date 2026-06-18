@@ -12,6 +12,7 @@
     "generated/codey_blueprints.py",
     "README.md",
     "src/",
+    "tools/detect_codey.py",
     "tools/flash_codey.py",
     "tools/trigger_codey.py"
   ],
