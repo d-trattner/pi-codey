@@ -4,7 +4,7 @@
  * Natural reaction blueprints for Codey Rocky.
  *
  * These are intentionally small "body language" recipes the assistant can use
- * consistently instead of improvising raw LED/sound/display commands every time.
+ * consistently instead of improvising raw LED/motion/display commands every time.
  * Each step maps to CodeyRocky methods in src/index.js.
  */
 

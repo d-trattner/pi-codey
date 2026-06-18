@@ -104,7 +104,7 @@ class CodeyRocky {
   }
 
   async clear() {
-    await this.run("codey.display.clear()\ncodey.led.off()\ncodey.speaker.stop() if hasattr(codey.speaker, 'stop') else None");
+    await this.run("codey.display.clear()\ncodey.led.off()");
   }
 
   async display(text) {
@@ -135,24 +135,21 @@ class CodeyRocky {
   }
 
   async note(note = 72, duration = 0.18) {
-    await this.run(`codey.speaker.play_note(${Number(note)}, ${Number(duration)})`);
+    // Silent by design: pi-codey avoids speaker beeps/sounds.
+    await sleep(Math.max(0, Number(duration) * 1000));
   }
 
   async beep() {
-    await this.sequence([
-      'codey.speaker.play_note(72, 0.12)',
-      'codey.speaker.play_note(79, 0.12)',
-    ], 140);
+    // Silent by design.
   }
 
   async playNotes(notes = [72, 76, 79], duration = 0.14) {
-    const body = notes.map((n) => `codey.speaker.play_note(${Number(n)}, ${Number(duration)})`).join('\n');
-    await this.run(body, { pause: Math.max(80, notes.length * duration * 1000) });
+    // Silent by design: keep API compatibility without using Codey's speaker.
+    await sleep(Math.max(0, notes.length * Number(duration) * 1000));
   }
 
   async melody(name, fallback = null) {
-    const fallbackCode = fallback ? fallback.map((n) => `codey.speaker.play_note(${Number(n)}, 0.12)`).join('\n') : 'pass';
-    await this.run(`\ntry:\n    codey.speaker.play_melody(${jsString(name)})\nexcept Exception:\n    ${fallbackCode.replace(/\n/g, '\n    ')}\n`, { pause: 700 });
+    // Silent by design: visual/LED/motion reactions only.
   }
 
   async motors(left = 0, right = 0) {

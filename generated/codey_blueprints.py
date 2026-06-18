@@ -57,15 +57,13 @@ def led(r, g, b): codey.led.show(r, g, b)
 def face(img): codey.display.show_image(img)
 
 def notes(seq, dur=0.12):
-    for n in seq:
-        codey.speaker.play_note(n, dur)
-        time.sleep(0.03)
+    # pi-codey intentionally keeps reactions silent by default.
+    # Preserve this helper as a no-op so older blueprint calls stay compatible.
+    pass
 
 def melody(name, fallback=None):
-    try:
-        codey.speaker.play_melody(name)
-    except Exception:
-        if fallback: notes(fallback, 0.12)
+    # Silent by design: visual/LED/motion reactions only, no speaker beeps.
+    pass
 
 def wiggle(speed=25, duration=0.18):
     try:
@@ -106,7 +104,6 @@ def idle_now():
 def preview_name(name):
     led(0, 100, 255)
     face(EYES)
-    codey.speaker.play_note(72, 0.06)
     time.sleep(0.18)
 
 def request_blueprint(name):
