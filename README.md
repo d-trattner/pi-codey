@@ -6,7 +6,7 @@ Installable Pi extension + onboard controller for **Makeblock Codey Rocky** reac
 
 ## What it includes
 
-- Pi extension source: `.extensions/pi-codey.ts`
+- Pi extension source: `extensions/pi-codey.ts`
 - Onboard Codey blueprint program: `generated/codey_blueprints.py`
 - Direct uploader: `tools/flash_codey.py`
 - Trigger CLI: `tools/trigger_codey.py`
@@ -34,7 +34,7 @@ pi install -l .
 
 Then reload/restart Pi.
 
-Note: the extension source lives in `.extensions/` so Pi does not auto-load it directly while also loading the installed copy from `.pi/extensions/`. Keeping a project-root `extensions/` copy after `pi install .` will cause a duplicate `codey_react` tool conflict.
+Note: this repo is intended to be installed as a Pi package while developing (`pi install .` or a global local-path install). Do not also copy the same extension into `.pi/extensions/`, because that would load a second copy and duplicate the `codey_react` tool.
 
 ## Flash Codey
 
@@ -104,7 +104,7 @@ pi install .           # install the current checkout into Pi
 npm publish            # publish when logged in to npm
 ```
 
-The npm package intentionally includes only the runtime files plus `.extensions/pi-codey.ts`.
+The npm package intentionally includes only the runtime files plus `extensions/pi-codey.ts`.
 
 ## Notes
 

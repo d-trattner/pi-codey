@@ -4,7 +4,7 @@
   "description": "Pi extension and onboard blueprint controller for Makeblock Codey Rocky reactions.",
   "main": "src/index.js",
   "files": [
-    ".extensions/",
+    "extensions/",
     "bin/pi-codey.js",
     "bin/pi-codey-flash.js",
     "examples/",
@@ -35,7 +35,7 @@
   ],
   "pi": {
     "extensions": [
-      "./.extensions/pi-codey.ts"
+      "./extensions/pi-codey.ts"
     ]
   },
   "peerDependencies": {
