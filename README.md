@@ -131,6 +131,7 @@ Example:
 ```json
 {
   "movement": true,
+  "movementSpeed": 0.55,
   "sounds": true,
   "blueprints": {
     "success": { "sound": "yummy", "movement": true },
@@ -149,8 +150,10 @@ Then flash:
 Options:
 
 - `movement`: global default for Rocky wheel/body movement
+- `movementSpeed`: global movement speed multiplier from `0` to `1`; default is `0.55` for softer movement
 - `sounds`: global default for built-in wave/melody playback
 - `blueprints.<name>.movement`: override movement for one blueprint
+- `blueprints.<name>.movementSpeed`: override speed for one blueprint
 - `blueprints.<name>.sounds`: override sounds for one blueprint
 - `blueprints.<name>.sound`: replace one blueprint's sound, e.g. `"score"`, `"level up"`, or `null` for no sound
 

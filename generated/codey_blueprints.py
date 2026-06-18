@@ -39,7 +39,7 @@ SOUNDS = [
     'wrong.wav', 'ring.wav', 'score.wav', 'shot.wav', 'step_1.wav',
     'step_2.wav', 'wake.wav', 'warning.wav'
 ]
-CONFIG = json.loads('{"movement":true,"sounds":true,"blueprints":{}}')
+CONFIG = json.loads('{"movement":true,"movementSpeed":0.55,"sounds":true,"blueprints":{}}')
 index = 0
 idle_i = 0
 requested = None
@@ -96,6 +96,19 @@ def sounds_enabled(name=None):
     except Exception:
         return True
 
+def movement_speed(name=None):
+    if name is None: name = current_blueprint
+    try:
+        speed = float(bp_config(name).get('movementSpeed', CONFIG.get('movementSpeed', 0.55)))
+        if speed < 0: speed = 0
+        if speed > 1: speed = 1
+        return speed
+    except Exception:
+        return 0.55
+
+def scaled_speed(speed):
+    return max(1, int(speed * movement_speed()))
+
 def sound_name(name, default):
     value = bp_config(name).get('sound', default)
     if value is None or value is False or value == '': return None
@@ -116,6 +129,7 @@ def blueprint_melody(blueprint, default):
 
 def wiggle(speed=25, duration=0.18):
     if not movement_enabled(): return
+    speed = scaled_speed(speed)
     try:
         rocky.forward(speed, duration); time.sleep(0.05)
         rocky.backward(speed, duration); time.sleep(0.05)
@@ -124,6 +138,7 @@ def wiggle(speed=25, duration=0.18):
 
 def rotate(direction=1, speed=28, duration=0.22):
     if not movement_enabled(): return
+    speed = scaled_speed(speed)
     try:
         rocky.drive(speed if direction >= 0 else -speed, -speed if direction >= 0 else speed)
         time.sleep(duration); rocky.stop()

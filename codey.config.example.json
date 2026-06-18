@@ -1,10 +1,12 @@
 {
   "movement": true,
+  "movementSpeed": 0.55,
   "sounds": true,
   "blueprints": {
     "ack": {
       "sound": "hi",
-      "movement": true
+      "movement": true,
+      "movementSpeed": 0.55
     },
     "hello": {
       "sound": "hello",
