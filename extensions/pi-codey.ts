@@ -7,7 +7,7 @@ import path from "node:path";
 const BLUEPRINTS = [
   "ack", "hello", "ready", "think", "curious", "notify", "success",
   "celebrate", "wow", "laugh", "warn", "error", "angry", "sad",
-  "sleepy", "bye", "idle",
+  "sleepy", "bored", "bye", "idle",
 ] as const;
 
 const SOUNDS = [
@@ -45,6 +45,7 @@ type CodeyState = {
   busy: boolean;
   queue: Blueprint[];
   lastAt: number;
+  boredTimer: ReturnType<typeof setTimeout> | null;
 };
 
 function isBlueprint(value: string): value is Blueprint {
@@ -73,6 +74,7 @@ export default function (pi: ExtensionAPI) {
     busy: false,
     queue: [],
     lastAt: 0,
+    boredTimer: null,
   };
 
   function trigger(blueprint: Blueprint, reason = "manual") {
@@ -88,6 +90,22 @@ export default function (pi: ExtensionAPI) {
   function pick(items: readonly Blueprint[], reason: string) {
     const hash = Array.from(reason).reduce((sum, ch) => sum + ch.charCodeAt(0), 0) + Date.now();
     return items[Math.abs(hash) % items.length];
+  }
+
+  function clearBoredTimer() {
+    if (state.boredTimer) {
+      clearTimeout(state.boredTimer);
+      state.boredTimer = null;
+    }
+  }
+
+  function startBoredTimer() {
+    clearBoredTimer();
+    if (!autoEnabled()) return;
+    state.boredTimer = setTimeout(() => {
+      state.boredTimer = null;
+      trigger("bored", "bored_timer");
+    }, 30000);
   }
 
   function triggerAuto(kind: "session_start" | "agent_start" | "tool_start" | "tool_success" | "tool_error" | "agent_end" | "session_shutdown") {
@@ -219,6 +237,7 @@ export default function (pi: ExtensionAPI) {
 
   pi.on("agent_start", async () => {
     triggerAuto("agent_start");
+    startBoredTimer();
   });
 
   pi.on("tool_execution_start", async () => {
@@ -230,10 +249,12 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.on("agent_end", async () => {
+    clearBoredTimer();
     triggerAuto("agent_end");
   });
 
   pi.on("session_shutdown", async () => {
+    clearBoredTimer();
     triggerAuto("session_shutdown");
   });
 

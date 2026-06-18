@@ -93,6 +93,22 @@ This uploads `generated/codey_blueprints.py` to Codey as `/flash/main.py`.
 
 Detection scores serial ports using Codey/Makeblock/CH340/WCH USB metadata.
 
+## Long-running task reaction
+
+When automatic reactions are enabled, Codey triggers a `bored` blueprint once if an agent turn runs longer than 30 seconds. The timer is cancelled when the turn ends.
+
+Manual trigger:
+
+```text
+/codey bored
+```
+
+Configure it in `.pi/codey.config.json` like any other blueprint:
+
+```json
+"bored": { "sound": "sigh", "movement": false }
+```
+
 ## Test sequence
 
 Run a quick validation sequence:
@@ -138,7 +154,7 @@ python tools/trigger_codey.py sound --value "ready" --port COM3
 ```text
 ack, hello, ready, think, curious, notify, success,
 celebrate, wow, laugh, warn, error, angry, sad,
-sleepy, bye, idle
+sleepy, bored, bye, idle
 ```
 
 ## Blueprint configuration

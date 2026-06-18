@@ -64,6 +64,10 @@
       "sound": "sleepy",
       "movement": true
     },
+    "bored": {
+      "sound": "sigh",
+      "movement": false
+    },
     "bye": {
       "sound": "bye",
       "movement": true

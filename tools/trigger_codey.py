@@ -15,7 +15,7 @@ import serial
 BLUEPRINTS = [
     'ack', 'hello', 'ready', 'think', 'curious', 'notify', 'success',
     'celebrate', 'wow', 'laugh', 'warn', 'error', 'angry', 'sad',
-    'sleepy', 'bye', 'idle'
+    'sleepy', 'bored', 'bye', 'idle'
 ]
 MESSAGES = BLUEPRINTS + ['sound']
 

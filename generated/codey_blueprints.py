@@ -26,7 +26,7 @@ SHY = '000c18181c0c000000000c1c18180c00'
 BLUEPRINTS = [
     'ack', 'hello', 'ready', 'think', 'curious', 'notify', 'success',
     'celebrate', 'wow', 'laugh', 'warn', 'error', 'angry', 'sad',
-    'sleepy', 'bye'
+    'sleepy', 'bored', 'bye'
 ]
 SOUNDS = [
     'hello.wav', 'hi.wav', 'bye.wav', 'yeah.wav', 'wow.wav', 'laugh.wav',
@@ -238,6 +238,8 @@ def play_blueprint(name):
         led(160, 0, 255); face(SAD); blueprint_melody(name, 'sad.wav'); wiggle(12, 0.10)
     elif name == 'sleepy':
         led(0, 20, 80); face(BLINK_THIN); blueprint_melody(name, 'sleepy.wav'); time.sleep(0.4); face(BLINK_TINY)
+    elif name == 'bored':
+        led(35, 35, 80); face(LOOK_L); blueprint_melody(name, 'sigh.wav'); time.sleep(0.35); face(LOOK_R); time.sleep(0.35); face(BLINK_THIN)
     elif name == 'bye':
         led(0, 120, 255); face(SHY); blueprint_melody(name, 'bye.wav'); rotate(-1, 18, 0.12); face(EYES)
     current_blueprint = None
