@@ -2,7 +2,7 @@
 
 Installable Pi extension + onboard controller for **Makeblock Codey Rocky** reactions.
 
-`pi-codey` lets Pi trigger Codey Rocky reaction blueprints over USB serial without mBlock during normal use. The onboard Codey program stores the expressive blueprints; Pi only sends tiny trigger packets such as `success`, `think`, or `error`. Reactions are silent by design: LED, face/display, and motion only; no speaker beeps or melodies.
+`pi-codey` lets Pi trigger Codey Rocky reaction blueprints over USB serial without mBlock during normal use. The onboard Codey program stores the expressive blueprints; Pi only sends tiny trigger packets such as `success`, `think`, or `error`. Reactions avoid annoying synthetic beeps while still allowing Codey's built-in wave/melody files.
 
 ## What it includes
 

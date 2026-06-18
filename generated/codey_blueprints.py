@@ -62,8 +62,11 @@ def notes(seq, dur=0.12):
     pass
 
 def melody(name, fallback=None):
-    # Silent by design: visual/LED/motion reactions only, no speaker beeps.
-    pass
+    # Use Codey's built-in wave files, but avoid synthetic beep/note fallbacks.
+    try:
+        codey.speaker.play_melody(name)
+    except Exception:
+        pass
 
 def wiggle(speed=25, duration=0.18):
     try:

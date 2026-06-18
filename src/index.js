@@ -149,7 +149,8 @@ class CodeyRocky {
   }
 
   async melody(name, fallback = null) {
-    // Silent by design: visual/LED/motion reactions only.
+    // Use Codey's built-in wave files, but avoid synthetic beep/note fallbacks.
+    await this.run(`\ntry:\n    codey.speaker.play_melody(${jsString(name)})\nexcept Exception:\n    pass\n`, { pause: 700 });
   }
 
   async motors(left = 0, right = 0) {
