@@ -267,7 +267,9 @@ export default function (pi: ExtensionAPI) {
           ctx.ui.notify("pi-codey onboard blueprints flashed", "info");
           // Give the freshly uploaded onboard program time to restart and prime
           // stale upload-mode messages before sending the post-install reaction.
-          await new Promise((resolve) => setTimeout(resolve, 1800));
+          // If this is too early, Codey may treat the fresh success message as
+          // startup state and ignore it.
+          await new Promise((resolve) => setTimeout(resolve, 6000));
           trigger("success", "install");
         } else {
           ctx.ui.notify("pi-codey flash failed. Check Codey is on COM port and not held by mBlock.", "error");
