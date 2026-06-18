@@ -137,7 +137,9 @@ These are configured in `.pi/codey.config.json`:
     "lowAccel": 4,
     "highAccel": 22,
     "deltaAccel": 10,
-    "useFloorIr": false,
+    "useFloorIr": true,
+    "floorIrThreshold": 20,
+    "floorIrStableThreshold": 60,
     "stableMin": 7,
     "stableMax": 13,
     "cooldownMs": 5000
