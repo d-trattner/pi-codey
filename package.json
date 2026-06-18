@@ -44,6 +44,14 @@
   },
   "author": "Daniel",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/d-trattner/pi-codey.git"
+  },
+  "bugs": {
+    "url": "https://github.com/d-trattner/pi-codey/issues"
+  },
+  "homepage": "https://github.com/d-trattner/pi-codey#readme",
   "publishConfig": {
     "access": "public"
   },
