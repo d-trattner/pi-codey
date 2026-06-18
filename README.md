@@ -129,7 +129,7 @@ These are configured in `.pi/codey.config.json`:
 "sensors": {
   "enabled": true,
   "shake": { "enabled": true, "blueprint": "dizzy", "threshold": 25, "cooldownMs": 5000 },
-  "sound": { "enabled": true, "blueprint": "screaming", "threshold": 85, "cooldownMs": 5000 },
+  "sound": { "enabled": true, "blueprint": "screaming", "threshold": 45, "cooldownMs": 5000 },
   "lift": {
     "enabled": true,
     "fearBlueprint": "fear",
