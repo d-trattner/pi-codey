@@ -125,6 +125,16 @@ def request_blueprint(name):
     global requested
     requested = name
 
+def prime_seen_messages():
+    global seen_messages
+    try:
+        for name in BLUEPRINTS + ['idle', 'sound']:
+            val = codey.upload_mode_message.get_info(name)
+            if val:
+                seen_messages[name] = val
+    except Exception:
+        pass
+
 def check_external_triggers():
     global requested, requested_sound, seen_messages
     try:
@@ -180,7 +190,7 @@ def play_blueprint(name):
     interruptible_sleep(1.1)
     idle_now()
 
-idle_now(); wait_release()
+idle_now(); wait_release(); prime_seen_messages()
 while True:
     check_external_triggers()
     if requested_sound:
