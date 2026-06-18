@@ -90,6 +90,16 @@ def read_protocol_message(ser: serial.Serial) -> Tuple[Optional[bytes], Optional
     return None, None
 
 
+def safe_print(text: str = "", *, end: str = "\n") -> None:
+    try:
+        print(text, end=end)
+    except UnicodeEncodeError:
+        encoded = str(text).encode(sys.stdout.encoding or "utf-8", "replace")
+        sys.stdout.buffer.write(encoded)
+        sys.stdout.buffer.write(end.encode(sys.stdout.encoding or "utf-8", "replace"))
+        sys.stdout.flush()
+
+
 def upload(port: str, code_path: Path, verbose: bool = False, run_tail: bool = False) -> None:
     code = code_path.read_text(encoding="utf-8")
     with serial.Serial(port, 115200, timeout=1, write_timeout=2) as ser:
@@ -100,7 +110,7 @@ def upload(port: str, code_path: Path, verbose: bool = False, run_tail: bool = F
         time.sleep(0.3)
         read_protocol_message(ser)
 
-        print(f"Uploading {code_path} to {port}:/flash/main.py ({len(code.encode('utf-8'))} bytes)")
+        safe_print(f"Uploading {code_path} to {port}:/flash/main.py ({len(code.encode('utf-8'))} bytes)")
         for packet in serialize_upload(code):
             if verbose:
                 print(">", packet.hex(" "))
@@ -111,15 +121,15 @@ def upload(port: str, code_path: Path, verbose: bool = False, run_tail: bool = F
             if verbose and response:
                 print("<", response.hex(" "))
             if text:
-                print(text, end="")
+                safe_print(text, end="")
 
-        print("Upload complete.")
+        safe_print("Upload complete.")
         if run_tail:
-            print("Reading serial output; Ctrl+C to stop.")
+            safe_print("Reading serial output; Ctrl+C to stop.")
             while True:
                 _, text = read_protocol_message(ser)
                 if text:
-                    print(text, end="")
+                    safe_print(text, end="")
 
 
 def main(argv: list[str] | None = None) -> int:
