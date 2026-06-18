@@ -168,7 +168,7 @@ def play_blueprint(name):
     elif name == 'notify':
         led(255, 255, 255); face(EYES); melody('prompt tone.wav', [76, 76]); shake(20); face(LOOK_R)
     elif name == 'success':
-        led(0, 255, 70); face(OK); melody('right.wav', [67, 72, 79]); wiggle(25, 0.16); rotate(1, 22, 0.12); face(HAPPY)
+        led(0, 255, 70); face(OK); melody('yummy.wav', [67, 72, 79]); wiggle(25, 0.16); rotate(1, 22, 0.12); face(HAPPY)
     elif name == 'celebrate':
         led(255, 0, 120); face(HAPPY); melody('yeah.wav', [72, 76, 79, 84, 79]); rotate(1, 35, 0.20); rotate(-1, 35, 0.20); wiggle(35, 0.16); led(0, 255, 70); face(OK)
     elif name == 'wow':

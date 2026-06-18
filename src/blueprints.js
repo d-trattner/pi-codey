@@ -70,7 +70,7 @@ const BLUEPRINTS = {
     steps: [
       { action: 'led', color: 'green' },
       { action: 'face', name: 'success' },
-      { action: 'melody', name: 'right.wav', fallback: [67, 72, 79] },
+      { action: 'melody', name: 'yummy.wav', fallback: [67, 72, 79] },
     ],
   },
 
