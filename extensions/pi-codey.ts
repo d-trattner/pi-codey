@@ -265,7 +265,7 @@ export default function (pi: ExtensionAPI) {
         const result = await flashCodey(state.port);
         if (result.ok) {
           ctx.ui.notify("pi-codey onboard blueprints flashed", "info");
-          trigger("ready", "install");
+          trigger("success", "install");
         } else {
           ctx.ui.notify("pi-codey flash failed. Check Codey is on COM port and not held by mBlock.", "error");
         }
