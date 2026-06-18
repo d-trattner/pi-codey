@@ -39,7 +39,7 @@ SOUNDS = [
     'wrong.wav', 'ring.wav', 'score.wav', 'shot.wav', 'step_1.wav',
     'step_2.wav', 'wake.wav', 'warning.wav'
 ]
-CONFIG = json.loads('{"movement":true,"movementSpeed":0.55,"sounds":true,"blueprints":{},"sensors":{"enabled":true,"shake":{"enabled":true,"blueprint":"dizzy","threshold":45,"cooldownMs":5000},"sound":{"enabled":true,"blueprint":"screaming","threshold":75,"cooldownMs":5000},"lift":{"enabled":true,"fearBlueprint":"fear","putDownBlueprint":"thank_you","lowAccel":5,"highAccel":18,"stableMin":7,"stableMax":13,"cooldownMs":5000}}}')
+CONFIG = json.loads('{"movement":true,"movementSpeed":0.55,"sounds":true,"blueprints":{},"sensors":{"enabled":true,"shake":{"enabled":true,"blueprint":"dizzy","threshold":20,"cooldownMs":5000},"sound":{"enabled":true,"blueprint":"screaming","threshold":65,"cooldownMs":5000},"lift":{"enabled":true,"fearBlueprint":"fear","putDownBlueprint":"thank_you","lowAccel":5,"highAccel":18,"deltaAccel":6,"stableMin":7,"stableMax":13,"cooldownMs":5000}}}')
 index = 0
 idle_i = 0
 requested = None
@@ -49,6 +49,7 @@ current_blueprint = None
 last_sensor_at = {}
 lifted = False
 stable_since = 0
+last_accel_total = 9.8
 
 IDLE_FRAMES = [
     (EYES, 1.7), (BLINK_MID, 0.06), (BLINK_TINY, 0.14), (BLINK_WIDE, 0.06),
@@ -68,6 +69,9 @@ def interruptible_sleep(seconds):
     ticks = max(1, int(seconds / 0.05))
     for _ in range(ticks):
         if pressed_a() or pressed_b() or pressed_c(): return True
+        if current_blueprint is None:
+            check_sensors()
+            if requested or requested_sound: return True
         time.sleep(0.05)
     return False
 
@@ -216,12 +220,12 @@ def prime_seen_messages():
         pass
 
 def check_sensors():
-    global requested, lifted, stable_since
+    global requested, lifted, stable_since, last_accel_total
     if requested or requested_sound or current_blueprint: return
     shake = sensor_config('shake')
     if shake:
         try:
-            if codey.motion_sensor.is_shaked() and codey.motion_sensor.get_shake_strength() >= shake.get('threshold', 45):
+            if codey.motion_sensor.is_shaked() and codey.motion_sensor.get_shake_strength() >= shake.get('threshold', 20):
                 if sensor_ready('shake', shake.get('cooldownMs', 5000)):
                     requested = shake.get('blueprint', 'dizzy')
                     return
@@ -237,14 +241,17 @@ def check_sensors():
     lift = sensor_config('lift')
     if lift:
         total = accel_total()
+        delta = abs(total - last_accel_total)
+        last_accel_total = total
         low = lift.get('lowAccel', 5)
         high = lift.get('highAccel', 18)
+        delta_threshold = lift.get('deltaAccel', 6)
         stable_min = lift.get('stableMin', 7)
         stable_max = lift.get('stableMax', 13)
         try: upright = codey.motion_sensor.is_upright()
         except Exception: upright = True
         now = time.time()
-        if not lifted and (total < low or total > high or not upright):
+        if not lifted and (total < low or total > high or delta > delta_threshold or not upright):
             lifted = True
             stable_since = 0
             if sensor_ready('lift', lift.get('cooldownMs', 5000)):

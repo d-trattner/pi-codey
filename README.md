@@ -109,14 +109,15 @@ These are configured in `.pi/codey.config.json`:
 ```json
 "sensors": {
   "enabled": true,
-  "shake": { "enabled": true, "blueprint": "dizzy", "threshold": 45, "cooldownMs": 5000 },
-  "sound": { "enabled": true, "blueprint": "screaming", "threshold": 75, "cooldownMs": 5000 },
+  "shake": { "enabled": true, "blueprint": "dizzy", "threshold": 20, "cooldownMs": 5000 },
+  "sound": { "enabled": true, "blueprint": "screaming", "threshold": 65, "cooldownMs": 5000 },
   "lift": {
     "enabled": true,
     "fearBlueprint": "fear",
     "putDownBlueprint": "thank_you",
     "lowAccel": 5,
     "highAccel": 18,
+    "deltaAccel": 6,
     "stableMin": 7,
     "stableMax": 13,
     "cooldownMs": 5000
@@ -124,7 +125,7 @@ These are configured in `.pi/codey.config.json`:
 }
 ```
 
-Lift detection is heuristic: it uses motion-sensor acceleration/orientation changes, then waits for stable upright acceleration before triggering `thank_you`.
+Sensor checks run during idle waits so short shake/lift events are not missed. Lift detection is heuristic: it uses motion-sensor acceleration/orientation changes, then waits for stable upright acceleration before triggering `thank_you`.
 
 ## Long-running task reaction
 

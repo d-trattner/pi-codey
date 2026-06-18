@@ -30,13 +30,13 @@
     "shake": {
       "enabled": true,
       "blueprint": "dizzy",
-      "threshold": 45,
+      "threshold": 20,
       "cooldownMs": 5000
     },
     "sound": {
       "enabled": true,
       "blueprint": "screaming",
-      "threshold": 75,
+      "threshold": 65,
       "cooldownMs": 5000
     },
     "lift": {
@@ -45,6 +45,7 @@
       "putDownBlueprint": "thank_you",
       "lowAccel": 5,
       "highAccel": 18,
+      "deltaAccel": 6,
       "stableMin": 7,
       "stableMax": 13,
       "cooldownMs": 5000
