@@ -131,8 +131,9 @@ def check_external_triggers():
         val = codey.upload_mode_message.get_info('sound')
         if val and seen_messages.get('sound') != val:
             seen_messages['sound'] = val
-            if val in SOUNDS or (val + '.wav') in SOUNDS:
-                requested_sound = val
+            sound = val.split('|', 1)[0]
+            if sound in SOUNDS or (sound + '.wav') in SOUNDS:
+                requested_sound = sound
                 return
         for name in BLUEPRINTS + ['idle']:
             val = codey.upload_mode_message.get_info(name)
