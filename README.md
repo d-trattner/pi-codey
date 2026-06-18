@@ -63,6 +63,8 @@ This uploads `generated/codey_blueprints.py` to Codey as `/flash/main.py`.
 /codey install
 /codey detect
 /codey detect --use
+/codey sensors
+/codey sensors 20
 /codey test
 /codey success
 /codey celebrate
@@ -92,6 +94,23 @@ This uploads `generated/codey_blueprints.py` to Codey as `/flash/main.py`.
 ```
 
 Detection scores serial ports using Codey/Makeblock/CH340/WCH USB metadata.
+
+## Sensor diagnostics
+
+To tune sensor thresholds, run:
+
+```text
+/codey sensors      # records 15 seconds
+/codey sensors 30   # records 30 seconds
+```
+
+This temporarily uploads a diagnostic program, records readings to `.pi/codey-sensors-last.txt`, and prints the last readings in Pi. Move/lift/shake Codey while it is recording.
+
+Important: diagnostics overwrite the onboard pi-codey program. Restore afterwards with:
+
+```text
+/codey install
+```
 
 ## Sensor reactions
 

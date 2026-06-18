@@ -1,7 +1,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { spawn } from "node:child_process";
-import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const BLUEPRINTS = [
@@ -201,6 +201,28 @@ export default function (pi: ExtensionAPI) {
     });
   }
 
+  function runSensorDebug(seconds = 15): Promise<FlashResult & { logPath?: string }> {
+    return new Promise((resolve) => {
+      const script = path.join(state.root, "tools", "sensor_debug.py");
+      if (!existsSync(script)) return resolve({ ok: false, code: null, error: `sensor debug script not found: ${script}` });
+
+      const piDir = path.join(process.cwd(), ".pi");
+      mkdirSync(piDir, { recursive: true });
+      const logPath = path.join(piDir, "codey-sensors-last.txt");
+      let stdout = "";
+      let stderr = "";
+      const child = spawn("python", [script, "--port", state.port, "--seconds", String(seconds), "--output", logPath], {
+        cwd: state.root,
+        stdio: ["ignore", "pipe", "pipe"],
+        windowsHide: true,
+      });
+      child.stdout?.on("data", (chunk) => { stdout += String(chunk); });
+      child.stderr?.on("data", (chunk) => { stderr += String(chunk); });
+      child.once("error", (err) => resolve({ ok: false, code: null, error: err.message, output: stdout, logPath }));
+      child.once("exit", (code) => resolve({ ok: code === 0, code, error: code === 0 ? undefined : (stderr || stdout), output: stdout, logPath }));
+    });
+  }
+
   function detectCodey(): Promise<DetectResult> {
     return new Promise((resolve) => {
       const script = path.join(state.root, "tools", "detect_codey.py");
@@ -369,7 +391,7 @@ export default function (pi: ExtensionAPI) {
   }
 
   pi.registerCommand("codey", {
-    description: "Control pi-codey. Usage: /codey <install|flash|detect|test|blueprint|play soundname|profile silent|min|mid|max|on|off|auto-on|auto-off|port COM3|status>",
+    description: "Control pi-codey. Usage: /codey <install|flash|detect|sensors|test|blueprint|play soundname|profile silent|min|mid|max|on|off|auto-on|auto-off|port COM3|status>",
     handler: async (args, ctx) => {
       const parts = String(args || "").trim().split(/\s+/).filter(Boolean);
       const cmd = parts[0] || "status";
@@ -405,6 +427,16 @@ export default function (pi: ExtensionAPI) {
         } else {
           const ports = (result.ports || []).map((port) => port.port).filter(Boolean).join(", ");
           ctx.ui.notify(`No obvious Codey port found.${ports ? ` Available ports: ${ports}` : " No serial ports found."}`, "error");
+        }
+      } else if (cmd === "sensors") {
+        const seconds = Math.max(3, Math.min(60, Number(parts[1] || 15)));
+        ctx.ui.notify(`Running Codey sensor diagnostics for ${seconds}s on ${state.port}. This temporarily overwrites the onboard program.`, "info");
+        const result = await runSensorDebug(seconds);
+        if (result.ok) {
+          const tail = result.output?.trim().split(/\r?\n/).slice(-4).join(" | ") || "no output captured";
+          ctx.ui.notify(`Sensor log written to ${result.logPath}. Re-run /codey install to restore pi-codey. Last readings: ${tail}`, "info");
+        } else {
+          ctx.ui.notify(`Codey sensor diagnostics failed: ${result.error || "unknown error"}`, "error");
         }
       } else if (cmd === "test") {
         const sequence: Blueprint[] = ["hello", "think", "success", "idle"];

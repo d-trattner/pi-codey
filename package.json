@@ -14,6 +14,7 @@
     "src/",
     "tools/detect_codey.py",
     "tools/flash_codey.py",
+    "tools/sensor_debug.py",
     "tools/trigger_codey.py"
   ],
   "bin": {
