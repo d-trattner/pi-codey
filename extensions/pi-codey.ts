@@ -285,10 +285,10 @@ export default function (pi: ExtensionAPI) {
         state.auto = false;
         state.profile = "silent";
         ctx.ui.notify("pi-codey auto reactions disabled profile=silent", "info");
-      } else if (cmd === "profile") {
-        const profile = parts[1] || "";
+      } else if (cmd === "profile" || isProfile(cmd)) {
+        const profile = cmd === "profile" ? parts[1] || "" : cmd;
         if (!isProfile(profile)) {
-          ctx.ui.notify(`Usage: /codey profile <${PROFILES.join("|")}>. Current profile=${state.profile}`, "error");
+          ctx.ui.notify(`Usage: /codey profile <${PROFILES.join("|")}> or /codey <${PROFILES.join("|")}>. Current profile=${state.profile}`, "error");
         } else {
           state.profile = profile;
           state.auto = profile !== "silent";

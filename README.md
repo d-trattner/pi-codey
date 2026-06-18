@@ -68,6 +68,10 @@ This uploads `generated/codey_blueprints.py` to Codey as `/flash/main.py`.
 /codey play prompt tone
 /codey off
 /codey on
+/codey silent
+/codey min
+/codey mid
+/codey max
 /codey profile silent
 /codey profile min
 /codey profile mid
@@ -80,10 +84,16 @@ This uploads `generated/codey_blueprints.py` to Codey as `/flash/main.py`.
 ## Auto reaction profiles
 
 ```text
-/codey profile silent  # manual reactions only
-/codey profile min     # startup, thinking, errors, success, shutdown
-/codey profile mid     # min + tool start/success reactions
-/codey profile max     # broader expression palette across tool events
+/codey silent  # manual reactions only
+/codey min     # startup, thinking, errors, success, shutdown
+/codey mid     # min + tool start/success reactions
+/codey max     # broader expression palette across tool events
+
+# Long form also works:
+/codey profile silent
+/codey profile min
+/codey profile mid
+/codey profile max
 ```
 
 `/codey status` shows the current profile.
