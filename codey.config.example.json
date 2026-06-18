@@ -36,7 +36,7 @@
     "sound": {
       "enabled": true,
       "blueprint": "screaming",
-      "threshold": 45,
+      "threshold": 15,
       "cooldownMs": 5000
     },
     "lift": {

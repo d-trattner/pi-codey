@@ -39,7 +39,7 @@ SOUNDS = [
     'wrong.wav', 'ring.wav', 'score.wav', 'shot.wav', 'step_1.wav',
     'step_2.wav', 'wake.wav', 'warning.wav'
 ]
-CONFIG = json.loads('{"movement":true,"movementSpeed":0.55,"sounds":true,"blueprints":{},"sensors":{"enabled":true,"shake":{"enabled":true,"blueprint":"dizzy","threshold":25,"cooldownMs":5000},"sound":{"enabled":true,"blueprint":"screaming","threshold":45,"cooldownMs":5000},"lift":{"enabled":true,"fearBlueprint":"fear","putDownBlueprint":"thank_you","lowAccel":4,"highAccel":22,"deltaAccel":10,"useFloorIr":true,"floorIrThreshold":20,"floorIrStableThreshold":60,"offFloorStableSeconds":0.6,"onFloorStableSeconds":1.0,"stableMin":7,"stableMax":13,"cooldownMs":5000,"putDownCooldownMs":1000}}}')
+CONFIG = json.loads('{"movement":true,"movementSpeed":0.55,"sounds":true,"blueprints":{},"sensors":{"enabled":true,"shake":{"enabled":true,"blueprint":"dizzy","threshold":25,"cooldownMs":5000},"sound":{"enabled":true,"blueprint":"screaming","threshold":15,"cooldownMs":5000},"lift":{"enabled":true,"fearBlueprint":"fear","putDownBlueprint":"thank_you","lowAccel":4,"highAccel":22,"deltaAccel":10,"useFloorIr":true,"floorIrThreshold":20,"floorIrStableThreshold":60,"offFloorStableSeconds":0.6,"onFloorStableSeconds":1.0,"stableMin":7,"stableMax":13,"cooldownMs":5000,"putDownCooldownMs":1000}}}')
 index = 0
 idle_i = 0
 requested = None
