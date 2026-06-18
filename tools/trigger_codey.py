@@ -44,7 +44,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.blueprint == 'sound' and not args.value:
-        parser.error('sound requires --value, e.g. sound --value ready.wav')
+        parser.error('sound requires --value, e.g. sound --value ready')
     value = args.value if args.value is not None else str(time.time())
     frame = trigger_frame(args.blueprint, value)
     if args.verbose:

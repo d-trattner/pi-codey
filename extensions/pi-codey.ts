@@ -49,8 +49,12 @@ function isBlueprint(value: string): value is Blueprint {
   return (BLUEPRINTS as readonly string[]).includes(value);
 }
 
+function soundNames() {
+  return SOUNDS.map((sound) => sound.replace(/\.wav$/, ""));
+}
+
 function isSound(value: string) {
-  return (SOUNDS as readonly string[]).includes(value) || (SOUNDS as readonly string[]).includes(`${value}.wav`);
+  return soundNames().includes(value) || (SOUNDS as readonly string[]).includes(value);
 }
 
 function isProfile(value: string): value is Profile {
@@ -251,7 +255,7 @@ export default function (pi: ExtensionAPI) {
   }
 
   pi.registerCommand("codey", {
-    description: "Control pi-codey. Usage: /codey <install|flash|blueprint|sound name.wav|profile silent|min|mid|max|on|off|auto-on|auto-off|port COM3|status>",
+    description: "Control pi-codey. Usage: /codey <install|flash|blueprint|play soundname|profile silent|min|mid|max|on|off|auto-on|auto-off|port COM3|status>",
     handler: async (args, ctx) => {
       const parts = String(args || "").trim().split(/\s+/).filter(Boolean);
       const cmd = parts[0] || "status";
@@ -293,15 +297,15 @@ export default function (pi: ExtensionAPI) {
       } else if (cmd === "port") {
         state.port = parts[1] || state.port;
         ctx.ui.notify(`pi-codey port set to ${state.port}`, "info");
-      } else if (cmd === "sound" || cmd === "wave") {
+      } else if (cmd === "play") {
         const sound = parts.slice(1).join(" ");
         if (!sound) {
-          ctx.ui.notify(`Usage: /codey sound <name>. Sounds: ${SOUNDS.join(", ")}`, "info");
+          ctx.ui.notify(`Usage: /codey play <soundname>. Sounds: ${soundNames().join(", ")}`, "info");
         } else if (!isSound(sound)) {
-          ctx.ui.notify(`Unknown Codey sound: ${sound}. Use /codey sound to list available sounds.`, "error");
+          ctx.ui.notify(`Unknown Codey sound: ${sound}. Use /codey play to list available sounds.`, "error");
         } else {
-          await runSound(sound);
-          ctx.ui.notify(`Played Codey sound: ${sound}`, "info");
+          await runSound(sound.replace(/\.wav$/, ""));
+          ctx.ui.notify(`Played Codey sound: ${sound.replace(/\.wav$/, "")}`, "info");
         }
       } else if (isBlueprint(cmd)) {
         trigger(cmd, "command");
