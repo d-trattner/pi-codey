@@ -3,74 +3,51 @@
   "movementSpeed": 0.55,
   "sounds": true,
   "blueprints": {
-    "ack": {
-      "sound": "hi",
-      "movement": true,
-      "movementSpeed": 0.55
+    "ack": { "sound": "hi", "movement": true, "movementSpeed": 0.55 },
+    "hello": { "sound": "hello", "movement": true },
+    "ready": { "sound": "ready", "movement": true },
+    "think": { "sound": "curious", "movement": true },
+    "curious": { "sound": "curious", "movement": true },
+    "notify": { "sound": "prompt tone", "movement": true },
+    "success": { "sound": "yummy", "movement": true },
+    "celebrate": { "sound": "yeah", "movement": true },
+    "wow": { "sound": "wow", "movement": true },
+    "laugh": { "sound": "laugh", "movement": true },
+    "warn": { "sound": "warning", "movement": true },
+    "error": { "sound": "wrong", "movement": true },
+    "angry": { "sound": "angry", "movement": true },
+    "sad": { "sound": "sad", "movement": true },
+    "sleepy": { "sound": "sleepy", "movement": true },
+    "bored": { "sound": "sigh", "movement": false },
+    "dizzy": { "sound": "surprised", "movement": true },
+    "screaming": { "sound": "surprised", "movement": false },
+    "fear": { "sound": "surprised", "movement": false },
+    "thank_you": { "sound": "yummy", "movement": false },
+    "bye": { "sound": "bye", "movement": true }
+  },
+  "sensors": {
+    "enabled": true,
+    "shake": {
+      "enabled": true,
+      "blueprint": "dizzy",
+      "threshold": 45,
+      "cooldownMs": 5000
     },
-    "hello": {
-      "sound": "hello",
-      "movement": true
+    "sound": {
+      "enabled": true,
+      "blueprint": "screaming",
+      "threshold": 75,
+      "cooldownMs": 5000
     },
-    "ready": {
-      "sound": "ready",
-      "movement": true
-    },
-    "think": {
-      "sound": "curious",
-      "movement": true
-    },
-    "curious": {
-      "sound": "curious",
-      "movement": true
-    },
-    "notify": {
-      "sound": "prompt tone",
-      "movement": true
-    },
-    "success": {
-      "sound": "yummy",
-      "movement": true
-    },
-    "celebrate": {
-      "sound": "yeah",
-      "movement": true
-    },
-    "wow": {
-      "sound": "wow",
-      "movement": true
-    },
-    "laugh": {
-      "sound": "laugh",
-      "movement": true
-    },
-    "warn": {
-      "sound": "warning",
-      "movement": true
-    },
-    "error": {
-      "sound": "wrong",
-      "movement": true
-    },
-    "angry": {
-      "sound": "angry",
-      "movement": true
-    },
-    "sad": {
-      "sound": "sad",
-      "movement": true
-    },
-    "sleepy": {
-      "sound": "sleepy",
-      "movement": true
-    },
-    "bored": {
-      "sound": "sigh",
-      "movement": false
-    },
-    "bye": {
-      "sound": "bye",
-      "movement": true
+    "lift": {
+      "enabled": true,
+      "fearBlueprint": "fear",
+      "putDownBlueprint": "thank_you",
+      "lowAccel": 5,
+      "highAccel": 18,
+      "stableMin": 7,
+      "stableMax": 13,
+      "cooldownMs": 5000
     }
   }
 }

@@ -93,6 +93,39 @@ This uploads `generated/codey_blueprints.py` to Codey as `/flash/main.py`.
 
 Detection scores serial ports using Codey/Makeblock/CH340/WCH USB metadata.
 
+## Sensor reactions
+
+The onboard program can also react to local Codey sensors:
+
+```text
+shake          → dizzy
+loud sound     → screaming
+lift/airborne  → fear
+put down again → thank_you
+```
+
+These are configured in `.pi/codey.config.json`:
+
+```json
+"sensors": {
+  "enabled": true,
+  "shake": { "enabled": true, "blueprint": "dizzy", "threshold": 45, "cooldownMs": 5000 },
+  "sound": { "enabled": true, "blueprint": "screaming", "threshold": 75, "cooldownMs": 5000 },
+  "lift": {
+    "enabled": true,
+    "fearBlueprint": "fear",
+    "putDownBlueprint": "thank_you",
+    "lowAccel": 5,
+    "highAccel": 18,
+    "stableMin": 7,
+    "stableMax": 13,
+    "cooldownMs": 5000
+  }
+}
+```
+
+Lift detection is heuristic: it uses motion-sensor acceleration/orientation changes, then waits for stable upright acceleration before triggering `thank_you`.
+
 ## Long-running task reaction
 
 When automatic reactions are enabled, Codey triggers a `bored` blueprint once if an agent turn runs longer than 30 seconds. The timer is cancelled when the turn ends.
@@ -154,7 +187,7 @@ python tools/trigger_codey.py sound --value "ready" --port COM3
 ```text
 ack, hello, ready, think, curious, notify, success,
 celebrate, wow, laugh, warn, error, angry, sad,
-sleepy, bored, bye, idle
+sleepy, bored, dizzy, screaming, fear, thank_you, bye, idle
 ```
 
 ## Blueprint configuration

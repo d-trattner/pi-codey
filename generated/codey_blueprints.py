@@ -26,7 +26,7 @@ SHY = '000c18181c0c000000000c1c18180c00'
 BLUEPRINTS = [
     'ack', 'hello', 'ready', 'think', 'curious', 'notify', 'success',
     'celebrate', 'wow', 'laugh', 'warn', 'error', 'angry', 'sad',
-    'sleepy', 'bored', 'bye'
+    'sleepy', 'bored', 'dizzy', 'screaming', 'fear', 'thank_you', 'bye'
 ]
 SOUNDS = [
     'hello.wav', 'hi.wav', 'bye.wav', 'yeah.wav', 'wow.wav', 'laugh.wav',
@@ -39,13 +39,16 @@ SOUNDS = [
     'wrong.wav', 'ring.wav', 'score.wav', 'shot.wav', 'step_1.wav',
     'step_2.wav', 'wake.wav', 'warning.wav'
 ]
-CONFIG = json.loads('{"movement":true,"movementSpeed":0.55,"sounds":true,"blueprints":{}}')
+CONFIG = json.loads('{"movement":true,"movementSpeed":0.55,"sounds":true,"blueprints":{},"sensors":{"enabled":true,"shake":{"enabled":true,"blueprint":"dizzy","threshold":45,"cooldownMs":5000},"sound":{"enabled":true,"blueprint":"screaming","threshold":75,"cooldownMs":5000},"lift":{"enabled":true,"fearBlueprint":"fear","putDownBlueprint":"thank_you","lowAccel":5,"highAccel":18,"stableMin":7,"stableMax":13,"cooldownMs":5000}}}')
 index = 0
 idle_i = 0
 requested = None
 requested_sound = None
 seen_messages = {}
 current_blueprint = None
+last_sensor_at = {}
+lifted = False
+stable_since = 0
 
 IDLE_FRAMES = [
     (EYES, 1.7), (BLINK_MID, 0.06), (BLINK_TINY, 0.14), (BLINK_WIDE, 0.06),
@@ -114,6 +117,32 @@ def sound_name(name, default):
     if value is None or value is False or value == '': return None
     if value in SOUNDS or (value + '.wav') in SOUNDS: return value
     return default
+
+def sensor_config(name):
+    try:
+        sensors = CONFIG.get('sensors', {}) or {}
+        if not sensors.get('enabled', True): return None
+        item = sensors.get(name, {}) or {}
+        if not item.get('enabled', True): return None
+        return item
+    except Exception:
+        return None
+
+def sensor_ready(name, cooldown_ms):
+    now = time.time()
+    last = last_sensor_at.get(name, 0)
+    if (now - last) * 1000 < cooldown_ms: return False
+    last_sensor_at[name] = now
+    return True
+
+def accel_total():
+    try:
+        x = codey.motion_sensor.get_acceleration('x')
+        y = codey.motion_sensor.get_acceleration('y')
+        z = codey.motion_sensor.get_acceleration('z')
+        return abs(x) + abs(y) + abs(z)
+    except Exception:
+        return 9.8
 
 def melody(name, fallback=None):
     # Use Codey's built-in wave files, but avoid synthetic beep/note fallbacks.
@@ -186,6 +215,53 @@ def prime_seen_messages():
     except Exception:
         pass
 
+def check_sensors():
+    global requested, lifted, stable_since
+    if requested or requested_sound or current_blueprint: return
+    shake = sensor_config('shake')
+    if shake:
+        try:
+            if codey.motion_sensor.is_shaked() and codey.motion_sensor.get_shake_strength() >= shake.get('threshold', 45):
+                if sensor_ready('shake', shake.get('cooldownMs', 5000)):
+                    requested = shake.get('blueprint', 'dizzy')
+                    return
+        except Exception: pass
+    sound = sensor_config('sound')
+    if sound:
+        try:
+            if codey.sound_sensor.get_loudness() >= sound.get('threshold', 75):
+                if sensor_ready('sound', sound.get('cooldownMs', 5000)):
+                    requested = sound.get('blueprint', 'screaming')
+                    return
+        except Exception: pass
+    lift = sensor_config('lift')
+    if lift:
+        total = accel_total()
+        low = lift.get('lowAccel', 5)
+        high = lift.get('highAccel', 18)
+        stable_min = lift.get('stableMin', 7)
+        stable_max = lift.get('stableMax', 13)
+        try: upright = codey.motion_sensor.is_upright()
+        except Exception: upright = True
+        now = time.time()
+        if not lifted and (total < low or total > high or not upright):
+            lifted = True
+            stable_since = 0
+            if sensor_ready('lift', lift.get('cooldownMs', 5000)):
+                requested = lift.get('fearBlueprint', 'fear')
+                return
+        elif lifted:
+            if upright and stable_min <= total <= stable_max:
+                if stable_since == 0: stable_since = now
+                if now - stable_since > 0.8:
+                    lifted = False
+                    stable_since = 0
+                    if sensor_ready('putdown', lift.get('cooldownMs', 5000)):
+                        requested = lift.get('putDownBlueprint', 'thank_you')
+                        return
+            else:
+                stable_since = 0
+
 def check_external_triggers():
     global requested, requested_sound, seen_messages
     try:
@@ -240,6 +316,14 @@ def play_blueprint(name):
         led(0, 20, 80); face(BLINK_THIN); blueprint_melody(name, 'sleepy.wav'); time.sleep(0.4); face(BLINK_TINY)
     elif name == 'bored':
         led(35, 35, 80); face(LOOK_L); blueprint_melody(name, 'sigh.wav'); time.sleep(0.35); face(LOOK_R); time.sleep(0.35); face(BLINK_THIN)
+    elif name == 'dizzy':
+        led(120, 0, 255); face(SMALL); blueprint_melody(name, 'surprised.wav'); rotate(1, 18, 0.10); rotate(-1, 18, 0.10); face(THINK)
+    elif name == 'screaming':
+        led(255, 255, 255); face(WARN); blueprint_melody(name, 'surprised.wav'); time.sleep(0.25); led(255, 80, 0); face(SMALL)
+    elif name == 'fear':
+        led(255, 0, 0); face(WARN); blueprint_melody(name, 'surprised.wav'); time.sleep(0.35); face(SAD)
+    elif name == 'thank_you':
+        led(0, 255, 120); face(HAPPY); blueprint_melody(name, 'yummy.wav'); time.sleep(0.35); face(OK)
     elif name == 'bye':
         led(0, 120, 255); face(SHY); blueprint_melody(name, 'bye.wav'); rotate(-1, 18, 0.12); face(EYES)
     current_blueprint = None
@@ -249,6 +333,7 @@ def play_blueprint(name):
 idle_now(); wait_release(); prime_seen_messages()
 while True:
     check_external_triggers()
+    check_sensors()
     if requested_sound:
         sound = requested_sound
         requested_sound = None

@@ -7,7 +7,7 @@ import path from "node:path";
 const BLUEPRINTS = [
   "ack", "hello", "ready", "think", "curious", "notify", "success",
   "celebrate", "wow", "laugh", "warn", "error", "angry", "sad",
-  "sleepy", "bored", "bye", "idle",
+  "sleepy", "bored", "dizzy", "screaming", "fear", "thank_you", "bye", "idle",
 ] as const;
 
 const SOUNDS = [

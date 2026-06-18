@@ -141,11 +141,11 @@ Possible config names:
 - `codey.config.json`
 - Pi settings integration later
 
-### 11. Add sensor-driven emotional blueprints
+### 11. Add sensor-driven emotional blueprints — DONE
 
 Use Codey's onboard sensors to trigger local reactions even without Pi sending a command.
 
-Ideas:
+Implemented:
 
 - shake detected → `dizzy` blueprint
 - loud sound detected → `screaming` blueprint
