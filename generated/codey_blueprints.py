@@ -27,9 +27,21 @@ BLUEPRINTS = [
     'celebrate', 'wow', 'laugh', 'warn', 'error', 'angry', 'sad',
     'sleepy', 'bye'
 ]
+SOUNDS = [
+    'hello.wav', 'hi.wav', 'bye.wav', 'yeah.wav', 'wow.wav', 'laugh.wav',
+    'hum.wav', 'sad.wav', 'sigh.wav', 'annoyed.wav', 'angry.wav',
+    'surprised.wav', 'yummy.wav', 'curious.wav', 'embarrassed.wav',
+    'ready.wav', 'sprint.wav', 'sleepy.wav', 'meow.wav', 'start.wav',
+    'switch.wav', 'beeps.wav', 'buzzing.wav', 'exhaust.wav', 'explosion.wav',
+    'gotcha.wav', 'hurt.wav', 'jump.wav', 'laser.wav', 'level up.wav',
+    'low energy.wav', 'metal clash.wav', 'prompt tone.wav', 'right.wav',
+    'wrong.wav', 'ring.wav', 'score.wav', 'shot.wav', 'step_1.wav',
+    'step_2.wav', 'wake.wav', 'warning.wav'
+]
 index = 0
 idle_i = 0
 requested = None
+requested_sound = None
 seen_messages = {}
 
 IDLE_FRAMES = [
@@ -114,8 +126,14 @@ def request_blueprint(name):
     requested = name
 
 def check_external_triggers():
-    global requested, seen_messages
+    global requested, requested_sound, seen_messages
     try:
+        val = codey.upload_mode_message.get_info('sound')
+        if val and seen_messages.get('sound') != val:
+            seen_messages['sound'] = val
+            if val in SOUNDS or (val + '.wav') in SOUNDS:
+                requested_sound = val
+                return
         for name in BLUEPRINTS + ['idle']:
             val = codey.upload_mode_message.get_info(name)
             if val and seen_messages.get(name) != val:
@@ -164,7 +182,11 @@ def play_blueprint(name):
 idle_now(); wait_release()
 while True:
     check_external_triggers()
-    if requested:
+    if requested_sound:
+        sound = requested_sound
+        requested_sound = None
+        melody(sound)
+    elif requested:
         name = requested
         requested = None
         if name == 'idle': idle_now()

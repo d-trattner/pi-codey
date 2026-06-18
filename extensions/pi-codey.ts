@@ -10,6 +10,18 @@ const BLUEPRINTS = [
   "sleepy", "bye", "idle",
 ] as const;
 
+const SOUNDS = [
+  "hello.wav", "hi.wav", "bye.wav", "yeah.wav", "wow.wav", "laugh.wav",
+  "hum.wav", "sad.wav", "sigh.wav", "annoyed.wav", "angry.wav",
+  "surprised.wav", "yummy.wav", "curious.wav", "embarrassed.wav",
+  "ready.wav", "sprint.wav", "sleepy.wav", "meow.wav", "start.wav",
+  "switch.wav", "beeps.wav", "buzzing.wav", "exhaust.wav", "explosion.wav",
+  "gotcha.wav", "hurt.wav", "jump.wav", "laser.wav", "level up.wav",
+  "low energy.wav", "metal clash.wav", "prompt tone.wav", "right.wav",
+  "wrong.wav", "ring.wav", "score.wav", "shot.wav", "step_1.wav",
+  "step_2.wav", "wake.wav", "warning.wav",
+] as const;
+
 type Blueprint = (typeof BLUEPRINTS)[number];
 type Profile = "silent" | "min" | "mid" | "max";
 
@@ -35,6 +47,10 @@ type CodeyState = {
 
 function isBlueprint(value: string): value is Blueprint {
   return (BLUEPRINTS as readonly string[]).includes(value);
+}
+
+function isSound(value: string) {
+  return (SOUNDS as readonly string[]).includes(value) || (SOUNDS as readonly string[]).includes(`${value}.wav`);
 }
 
 function isProfile(value: string): value is Profile {
@@ -137,11 +153,19 @@ export default function (pi: ExtensionAPI) {
   }
 
   function runTrigger(blueprint: Blueprint, reason: string): Promise<void> {
+    return runTriggerMessage(blueprint, []);
+  }
+
+  function runSound(sound: string): Promise<void> {
+    return runTriggerMessage("sound", ["--value", sound]);
+  }
+
+  function runTriggerMessage(message: string, extraArgs: string[]): Promise<void> {
     return new Promise((resolve) => {
       const script = path.join(state.root, "tools", "trigger_codey.py");
       if (!existsSync(script)) return resolve();
 
-      const child = spawn("python", [script, blueprint, "--port", state.port], {
+      const child = spawn("python", [script, message, ...extraArgs, "--port", state.port], {
         cwd: state.root,
         stdio: "ignore",
         windowsHide: true,
@@ -227,7 +251,7 @@ export default function (pi: ExtensionAPI) {
   }
 
   pi.registerCommand("codey", {
-    description: "Control pi-codey. Usage: /codey <install|flash|blueprint|profile silent|min|mid|max|on|off|auto-on|auto-off|port COM3|status>",
+    description: "Control pi-codey. Usage: /codey <install|flash|blueprint|sound name.wav|profile silent|min|mid|max|on|off|auto-on|auto-off|port COM3|status>",
     handler: async (args, ctx) => {
       const parts = String(args || "").trim().split(/\s+/).filter(Boolean);
       const cmd = parts[0] || "status";
@@ -269,6 +293,16 @@ export default function (pi: ExtensionAPI) {
       } else if (cmd === "port") {
         state.port = parts[1] || state.port;
         ctx.ui.notify(`pi-codey port set to ${state.port}`, "info");
+      } else if (cmd === "sound" || cmd === "wave") {
+        const sound = parts.slice(1).join(" ");
+        if (!sound) {
+          ctx.ui.notify(`Usage: /codey sound <name>. Sounds: ${SOUNDS.join(", ")}`, "info");
+        } else if (!isSound(sound)) {
+          ctx.ui.notify(`Unknown Codey sound: ${sound}. Use /codey sound to list available sounds.`, "error");
+        } else {
+          await runSound(sound);
+          ctx.ui.notify(`Played Codey sound: ${sound}`, "info");
+        }
       } else if (isBlueprint(cmd)) {
         trigger(cmd, "command");
         ctx.ui.notify(`Triggered Codey: ${cmd}`, "info");

@@ -17,6 +17,7 @@ BLUEPRINTS = [
     'celebrate', 'wow', 'laugh', 'warn', 'error', 'angry', 'sad',
     'sleepy', 'bye', 'idle'
 ]
+MESSAGES = BLUEPRINTS + ['sound']
 
 
 def packet(payload: bytes) -> bytes:
@@ -36,12 +37,14 @@ def trigger_frame(message: str, value: str = '') -> bytes:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument('blueprint', choices=BLUEPRINTS)
+    parser.add_argument('blueprint', choices=MESSAGES)
     parser.add_argument('--value', default=None)
     parser.add_argument('--port', default='COM3')
     parser.add_argument('--verbose', action='store_true')
     args = parser.parse_args()
 
+    if args.blueprint == 'sound' and not args.value:
+        parser.error('sound requires --value, e.g. sound --value ready.wav')
     value = args.value if args.value is not None else str(time.time())
     frame = trigger_frame(args.blueprint, value)
     if args.verbose:

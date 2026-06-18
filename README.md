@@ -64,6 +64,8 @@ This uploads `generated/codey_blueprints.py` to Codey as `/flash/main.py`.
 /codey success
 /codey celebrate
 /codey idle
+/codey sound ready.wav
+/codey sound prompt tone.wav
 /codey off
 /codey on
 /codey profile silent
@@ -92,6 +94,7 @@ This uploads `generated/codey_blueprints.py` to Codey as `/flash/main.py`.
 python tools/trigger_codey.py success --port COM3
 python tools/trigger_codey.py think --port COM3
 python tools/trigger_codey.py idle --port COM3
+python tools/trigger_codey.py sound --value "ready.wav" --port COM3
 ```
 
 ## Blueprints
@@ -101,6 +104,31 @@ ack, hello, ready, think, curious, notify, success,
 celebrate, wow, laugh, warn, error, angry, sad,
 sleepy, bye, idle
 ```
+
+## Sounds
+
+Play a built-in Codey wave/melody file directly:
+
+```text
+/codey sound ready.wav
+/codey sound prompt tone.wav
+```
+
+Available built-in sounds:
+
+```text
+hello.wav, hi.wav, bye.wav, yeah.wav, wow.wav, laugh.wav,
+hum.wav, sad.wav, sigh.wav, annoyed.wav, angry.wav,
+surprised.wav, yummy.wav, curious.wav, embarrassed.wav,
+ready.wav, sprint.wav, sleepy.wav, meow.wav, start.wav,
+switch.wav, beeps.wav, buzzing.wav, exhaust.wav, explosion.wav,
+gotcha.wav, hurt.wav, jump.wav, laser.wav, level up.wav,
+low energy.wav, metal clash.wav, prompt tone.wav, right.wav,
+wrong.wav, ring.wav, score.wav, shot.wav, step_1.wav,
+step_2.wav, wake.wav, warning.wav
+```
+
+The `.wav` suffix is optional for Codey itself, but examples include it for clarity.
 
 ## Environment
 
