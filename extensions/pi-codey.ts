@@ -24,6 +24,7 @@ const SOUNDS = [
 
 type Blueprint = (typeof BLUEPRINTS)[number];
 type Profile = "silent" | "min" | "mid" | "max";
+type FlashResult = { ok: boolean; code: number | null; error?: string; output?: string };
 
 const PROFILES = ["silent", "min", "mid", "max"] as const;
 
@@ -265,36 +266,62 @@ export default function (pi: ExtensionAPI) {
     return tempProgram;
   }
 
-  function flashCodey(port = state.port): Promise<{ ok: boolean; code: number | null }> {
+  function summarizeFlashError(error: string, code: number | null) {
+    const text = error || `flash process exited with code ${code}`;
+    if (/Access is denied|PermissionError|could not open port|busy|denied/i.test(text)) {
+      return `${text}\nHint: close mBlock/serial monitors and check that ${state.port} is not already in use.`;
+    }
+    if (/No such file|FileNotFoundError|cannot find|not recognized/i.test(text)) {
+      return `${text}\nHint: check Python is installed and pi-codey package files are present.`;
+    }
+    if (/The system cannot find the file specified|cannot open|serial/i.test(text)) {
+      return `${text}\nHint: check Codey is connected and the port is set correctly with /codey port COMx.`;
+    }
+    return text;
+  }
+
+  function flashCodey(port = state.port): Promise<FlashResult> {
     return new Promise((resolve) => {
       const script = path.join(state.root, "tools", "flash_codey.py");
       const program = path.join(state.root, "generated", "codey_blueprints.py");
-      if (!existsSync(script) || !existsSync(program)) return resolve({ ok: false, code: null });
+      if (!existsSync(script)) return resolve({ ok: false, code: null, error: `flash script not found: ${script}` });
+      if (!existsSync(program)) return resolve({ ok: false, code: null, error: `blueprint program not found: ${program}` });
 
       let uploadProgram: string;
       try {
         uploadProgram = configuredProgramPath();
-      } catch {
-        return resolve({ ok: false, code: null });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return resolve({ ok: false, code: null, error: `failed to read codey.config.json: ${message}` });
       }
 
+      let stdout = "";
+      let stderr = "";
       const child = spawn("python", [script, uploadProgram, "--port", port], {
         cwd: state.root,
-        stdio: "ignore",
+        stdio: ["ignore", "pipe", "pipe"],
         windowsHide: true,
       });
-      child.once("error", () => resolve({ ok: false, code: null }));
+      child.stdout?.on("data", (chunk) => { stdout += String(chunk); });
+      child.stderr?.on("data", (chunk) => { stderr += String(chunk); });
+      child.once("error", (err) => resolve({ ok: false, code: null, error: summarizeFlashError(err.message, null), output: stdout }));
       child.once("exit", (code) => {
         if (path.basename(uploadProgram) === ".codey-blueprints.configured.py") {
           try { unlinkSync(uploadProgram); } catch {}
         }
-        resolve({ ok: code === 0, code });
+        const combined = `${stderr}${stdout ? `\n${stdout}` : ""}`.trim();
+        resolve({
+          ok: code === 0,
+          code,
+          error: code === 0 ? undefined : summarizeFlashError(combined, code),
+          output: stdout.trim(),
+        });
       });
     });
   }
 
   pi.registerCommand("codey", {
-    description: "Control pi-codey. Usage: /codey <install|flash|blueprint|play soundname|profile silent|min|mid|max|on|off|auto-on|auto-off|port COM3|status>",
+    description: "Control pi-codey. Usage: /codey <install|flash|test|blueprint|play soundname|profile silent|min|mid|max|on|off|auto-on|auto-off|port COM3|status>",
     handler: async (args, ctx) => {
       const parts = String(args || "").trim().split(/\s+/).filter(Boolean);
       const cmd = parts[0] || "status";
@@ -311,8 +338,12 @@ export default function (pi: ExtensionAPI) {
           await new Promise((resolve) => setTimeout(resolve, 6000));
           trigger("success", "install");
         } else {
-          ctx.ui.notify("pi-codey flash failed. Check Codey is on COM port and not held by mBlock.", "error");
+          ctx.ui.notify(`pi-codey flash failed: ${result.error || "unknown error"}`, "error");
         }
+      } else if (cmd === "test") {
+        const sequence: Blueprint[] = ["hello", "think", "success", "idle"];
+        sequence.forEach((blueprint) => trigger(blueprint, "test"));
+        ctx.ui.notify(`pi-codey test sequence queued: ${sequence.join(" → ")}`, "info");
       } else if (cmd === "on") {
         state.enabled = true;
         ctx.ui.notify("pi-codey enabled", "info");

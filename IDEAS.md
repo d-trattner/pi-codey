@@ -2,18 +2,18 @@
 
 ## High-value improvements
 
-### 1. Add a proper `/codey test` command
+### 1. Add a proper `/codey test` command — DONE
 
-A command that runs through a short reaction sequence:
+Implemented:
 
 ```text
 /codey test
 ```
 
-Example sequence:
+Current sequence:
 
 ```text
-hello → think → success → celebrate → idle
+hello → think → success → idle
 ```
 
 Useful after install, flashing, or changing ports.
@@ -38,17 +38,15 @@ Optionally support setting it immediately:
 /codey detect --use
 ```
 
-### 3. Improve install/flash feedback
+### 3. Improve install/flash feedback — DONE
 
-The extension currently runs Python helpers with ignored stdio, so failures can be vague.
+Implemented basic flash process stdout/stderr capture and clearer error hints for common issues:
 
-Improvements:
+- port busy / access denied
+- missing Python or package files
+- serial/device/port problems
 
-- capture stdout/stderr
-- return actual error messages
-- show common causes such as “port busy”, “device not found”, or “Python not found”
-
-This would make `/codey install` much easier to debug.
+This makes `/codey install` easier to debug.
 
 ### 4. Add configurable auto-reaction profiles — DONE
 

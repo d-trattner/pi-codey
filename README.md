@@ -61,6 +61,7 @@ This uploads `generated/codey_blueprints.py` to Codey as `/flash/main.py`.
 ```text
 /codey status
 /codey install
+/codey test
 /codey success
 /codey celebrate
 /codey idle
@@ -79,6 +80,20 @@ This uploads `generated/codey_blueprints.py` to Codey as `/flash/main.py`.
 /codey auto-off
 /codey auto-on
 /codey port COM3
+```
+
+## Test sequence
+
+Run a quick validation sequence:
+
+```text
+/codey test
+```
+
+This queues:
+
+```text
+hello → think → success → idle
 ```
 
 ## Auto reaction profiles
