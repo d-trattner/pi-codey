@@ -11,6 +11,9 @@ const BLUEPRINTS = [
 ] as const;
 
 type Blueprint = (typeof BLUEPRINTS)[number];
+type Profile = "silent" | "min" | "mid" | "max";
+
+const PROFILES = ["silent", "min", "mid", "max"] as const;
 
 const EXTENSION_DIR = typeof __dirname !== "undefined"
   ? __dirname
@@ -22,6 +25,7 @@ const PACKAGE_ROOT = path.basename(path.resolve(EXTENSION_DIR, "..")) === ".pi"
 type CodeyState = {
   enabled: boolean;
   auto: boolean;
+  profile: Profile;
   port: string;
   root: string;
   busy: boolean;
@@ -33,10 +37,15 @@ function isBlueprint(value: string): value is Blueprint {
   return (BLUEPRINTS as readonly string[]).includes(value);
 }
 
+function isProfile(value: string): value is Profile {
+  return (PROFILES as readonly string[]).includes(value);
+}
+
 export default function (pi: ExtensionAPI) {
   const state: CodeyState = {
     enabled: process.env.PI_CODEY_ENABLED !== "0",
     auto: process.env.PI_CODEY_AUTO !== "0",
+    profile: process.env.PI_CODEY_AUTO === "0" ? "silent" : "min",
     port: process.env.PI_CODEY_PORT || process.env.CODEYX_PORT || "COM3",
     root: process.env.PI_CODEY_ROOT || process.env.CODEYX_ROOT || PACKAGE_ROOT,
     busy: false,
@@ -48,6 +57,66 @@ export default function (pi: ExtensionAPI) {
     if (!state.enabled) return;
     state.queue.push(blueprint);
     void drain(reason);
+  }
+
+  function autoEnabled() {
+    return state.auto && state.profile !== "silent";
+  }
+
+  function pick(items: readonly Blueprint[], reason: string) {
+    const hash = Array.from(reason).reduce((sum, ch) => sum + ch.charCodeAt(0), 0) + Date.now();
+    return items[Math.abs(hash) % items.length];
+  }
+
+  function triggerAuto(kind: "session_start" | "agent_start" | "tool_start" | "tool_success" | "tool_error" | "agent_end" | "session_shutdown") {
+    if (!autoEnabled()) return;
+
+    if (state.profile === "min") {
+      const map: Partial<Record<typeof kind, Blueprint>> = {
+        session_start: "hello",
+        agent_start: "think",
+        tool_error: "error",
+        agent_end: "success",
+        session_shutdown: "bye",
+      };
+      const blueprint = map[kind];
+      if (blueprint) trigger(blueprint, kind);
+      return;
+    }
+
+    if (state.profile === "mid") {
+      const map: Partial<Record<typeof kind, Blueprint>> = {
+        session_start: "hello",
+        agent_start: "think",
+        tool_start: "curious",
+        tool_success: "notify",
+        tool_error: "error",
+        agent_end: "success",
+        session_shutdown: "bye",
+      };
+      const blueprint = map[kind];
+      if (blueprint) trigger(blueprint, kind);
+      return;
+    }
+
+    // max: use the full expression palette across normal Pi lifecycle events.
+    const map: Partial<Record<typeof kind, Blueprint | readonly Blueprint[]>> = {
+      session_start: "hello",
+      agent_start: "think",
+      tool_start: ["ack", "curious", "notify", "wow"],
+      tool_success: ["ready", "success", "celebrate", "laugh"],
+      tool_error: ["warn", "error", "angry", "sad"],
+      agent_end: "success",
+      session_shutdown: ["sleepy", "bye"],
+    };
+    const entry = map[kind];
+    if (!entry) return;
+    if (Array.isArray(entry)) {
+      if (kind === "session_shutdown") entry.forEach((blueprint) => trigger(blueprint, kind));
+      else trigger(pick(entry, kind), kind);
+    } else {
+      trigger(entry, kind);
+    }
   }
 
   async function drain(reason: string) {
@@ -87,26 +156,29 @@ export default function (pi: ExtensionAPI) {
   pi.on("session_start", async (_event, ctx) => {
     state.root = process.env.PI_CODEY_ROOT || process.env.CODEYX_ROOT || PACKAGE_ROOT;
     if (state.enabled) {
-      ctx.ui.notify(`pi-codey extension active on ${state.port}`, "info");
-      trigger("hello", "session_start");
+      ctx.ui.notify(`pi-codey extension active on ${state.port} profile=${state.profile}`, "info");
+      triggerAuto("session_start");
     }
   });
 
   pi.on("agent_start", async () => {
-    if (state.auto) trigger("think", "agent_start");
+    triggerAuto("agent_start");
+  });
+
+  pi.on("tool_execution_start", async () => {
+    triggerAuto("tool_start");
   });
 
   pi.on("tool_execution_end", async (event) => {
-    if (!state.auto) return;
-    if (event.isError) trigger("error", "tool_error");
+    triggerAuto(event.isError ? "tool_error" : "tool_success");
   });
 
   pi.on("agent_end", async () => {
-    if (state.auto) trigger("success", "agent_end");
+    triggerAuto("agent_end");
   });
 
   pi.on("session_shutdown", async () => {
-    if (state.enabled) trigger("bye", "session_shutdown");
+    triggerAuto("session_shutdown");
   });
 
   pi.registerTool({
@@ -155,7 +227,7 @@ export default function (pi: ExtensionAPI) {
   }
 
   pi.registerCommand("codey", {
-    description: "Control pi-codey. Usage: /codey <install|flash|blueprint|on|off|auto-on|auto-off|port COM3|status>",
+    description: "Control pi-codey. Usage: /codey <install|flash|blueprint|profile silent|min|mid|max|on|off|auto-on|auto-off|port COM3|status>",
     handler: async (args, ctx) => {
       const parts = String(args || "").trim().split(/\s+/).filter(Boolean);
       const cmd = parts[0] || "status";
@@ -179,10 +251,21 @@ export default function (pi: ExtensionAPI) {
         ctx.ui.notify("pi-codey disabled", "info");
       } else if (cmd === "auto-on") {
         state.auto = true;
-        ctx.ui.notify("pi-codey auto reactions enabled", "info");
+        if (state.profile === "silent") state.profile = "min";
+        ctx.ui.notify(`pi-codey auto reactions enabled profile=${state.profile}`, "info");
       } else if (cmd === "auto-off") {
         state.auto = false;
-        ctx.ui.notify("pi-codey auto reactions disabled", "info");
+        state.profile = "silent";
+        ctx.ui.notify("pi-codey auto reactions disabled profile=silent", "info");
+      } else if (cmd === "profile") {
+        const profile = parts[1] || "";
+        if (!isProfile(profile)) {
+          ctx.ui.notify(`Usage: /codey profile <${PROFILES.join("|")}>. Current profile=${state.profile}`, "error");
+        } else {
+          state.profile = profile;
+          state.auto = profile !== "silent";
+          ctx.ui.notify(`pi-codey profile set to ${state.profile}`, "info");
+        }
       } else if (cmd === "port") {
         state.port = parts[1] || state.port;
         ctx.ui.notify(`pi-codey port set to ${state.port}`, "info");
@@ -191,7 +274,7 @@ export default function (pi: ExtensionAPI) {
         ctx.ui.notify(`Triggered Codey: ${cmd}`, "info");
       } else {
         ctx.ui.notify(
-          `pi-codey enabled=${state.enabled} auto=${state.auto} port=${state.port}. Blueprints: ${BLUEPRINTS.join(", ")}`,
+          `pi-codey enabled=${state.enabled} auto=${autoEnabled()} profile=${state.profile} port=${state.port}. Profiles: ${PROFILES.join(", ")}. Blueprints: ${BLUEPRINTS.join(", ")}`,
           "info",
         );
       }

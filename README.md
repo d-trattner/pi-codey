@@ -66,10 +66,25 @@ This uploads `generated/codey_blueprints.py` to Codey as `/flash/main.py`.
 /codey idle
 /codey off
 /codey on
+/codey profile silent
+/codey profile min
+/codey profile mid
+/codey profile max
 /codey auto-off
 /codey auto-on
 /codey port COM3
 ```
+
+## Auto reaction profiles
+
+```text
+/codey profile silent  # manual reactions only
+/codey profile min     # startup, thinking, errors, success, shutdown
+/codey profile mid     # min + tool start/success reactions
+/codey profile max     # broader expression palette across tool events
+```
+
+`/codey status` shows the current profile.
 
 ## External trigger CLI
 
