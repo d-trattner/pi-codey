@@ -141,9 +141,50 @@ Possible config names:
 - `codey.config.json`
 - Pi settings integration later
 
+### 11. Add sensor-driven emotional blueprints
+
+Use Codey's onboard sensors to trigger local reactions even without Pi sending a command.
+
+Ideas:
+
+- shake detected → `dizzy` blueprint
+- loud sound detected → `screaming` blueprint
+- lifted into the air → `fear` blueprint
+- put down again after being lifted → `thank_you` blueprint
+
+Implementation notes:
+
+- Shake can use `codey.motion_sensor.is_shaked()` and/or `get_shake_strength()`.
+- Loud sound can use `codey.sound_sensor.get_loudness()` with a configurable threshold and cooldown.
+- Airborne/lift detection probably needs a heuristic, not a single perfect API:
+  - use `codey.motion_sensor.get_acceleration('x'|'y'|'z')`
+  - estimate total acceleration magnitude
+  - detect a brief low-gravity/freefall-ish window or large orientation/acceleration change
+  - optionally combine with Rocky/base state if available
+- Put-down detection can trigger when acceleration/orientation stabilizes again after the airborne state.
+- Add config controls, e.g.:
+
+```json
+{
+  "sensors": {
+    "enabled": true,
+    "shake": { "enabled": true, "blueprint": "dizzy", "cooldownMs": 5000 },
+    "sound": { "enabled": true, "blueprint": "screaming", "threshold": 75, "cooldownMs": 5000 },
+    "lift": {
+      "enabled": true,
+      "fearBlueprint": "fear",
+      "putDownBlueprint": "thank_you",
+      "cooldownMs": 5000
+    }
+  }
+}
+```
+
+Needs careful tuning to avoid false positives.
+
 ## Engineering improvements
 
-### 11. Split extension into smaller modules
+### 12. Split extension into smaller modules
 
 Current `extensions/pi-codey.ts` is fine, but eventually split it into smaller modules:
 
@@ -158,7 +199,7 @@ src/pi-extension/
 
 This would make testing and iteration easier.
 
-### 12. Add basic tests
+### 13. Add basic tests
 
 Useful test coverage:
 
@@ -168,7 +209,7 @@ Useful test coverage:
 - port override behavior
 - queue/cooldown behavior
 
-### 13. Add CI
+### 14. Add CI
 
 GitHub Actions could run:
 
