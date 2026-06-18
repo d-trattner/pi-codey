@@ -2,20 +2,68 @@
   "movement": true,
   "sounds": true,
   "blueprints": {
-    "success": {
-      "sound": "yummy",
+    "ack": {
+      "sound": "hi",
+      "movement": true
+    },
+    "hello": {
+      "sound": "hello",
+      "movement": true
+    },
+    "ready": {
+      "sound": "ready",
       "movement": true
     },
     "think": {
       "sound": "curious",
-      "movement": false
+      "movement": true
+    },
+    "curious": {
+      "sound": "curious",
+      "movement": true
+    },
+    "notify": {
+      "sound": "prompt tone",
+      "movement": true
+    },
+    "success": {
+      "sound": "yummy",
+      "movement": true
     },
     "celebrate": {
       "sound": "yeah",
-      "movement": false
+      "movement": true
+    },
+    "wow": {
+      "sound": "wow",
+      "movement": true
+    },
+    "laugh": {
+      "sound": "laugh",
+      "movement": true
+    },
+    "warn": {
+      "sound": "warning",
+      "movement": true
     },
     "error": {
       "sound": "wrong",
+      "movement": true
+    },
+    "angry": {
+      "sound": "angry",
+      "movement": true
+    },
+    "sad": {
+      "sound": "sad",
+      "movement": true
+    },
+    "sleepy": {
+      "sound": "sleepy",
+      "movement": true
+    },
+    "bye": {
+      "sound": "bye",
       "movement": true
     }
   }
